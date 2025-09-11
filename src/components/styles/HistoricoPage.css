@@ -1,0 +1,304 @@
+/* Container principal adaptado para sidebar aberta */
+.historico-container {
+  padding-left: 220px;
+  padding-top: 10px;
+  min-height: 100vh;
+  max-width: 1200px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.historico-title {
+  font-size: 2rem;
+  color: #2463eb;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+
+.input-pesquisa {
+  display: block;
+  width: 1200px;
+  max-width: 100%;
+  margin: 0 0 2.2rem 0;
+  padding: 0.69rem 1.1rem;
+  border: 1.5px solid #e4e8ee;
+  border-radius: 9px;
+  background: #fff;
+  font-size: 1rem;
+  color: #1a2340;
+  box-shadow: 0 1.5px 5px #2463eb13;
+  outline: none;
+  transition: border 0.16s;
+}
+.input-pesquisa:focus {
+  border-color: #2463eb;
+}
+
+/* Tabela */
+.historico-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 2.5rem;
+  box-shadow: 0 2px 18px rgba(36,99,235,0.07);
+}
+
+.historico-table th, .historico-table td {
+  padding: 1rem 0.9rem;
+  font-size: 1rem;
+  text-align: left;
+}
+
+.historico-table th {
+  background: #f3f7fe;
+  color: #2463eb;
+  font-weight: 700;
+  border-bottom: 2px solid #e0e7ef;
+  letter-spacing: 0.04em;
+}
+.historico-table tbody tr {
+  transition: background 0.16s;
+  cursor: pointer;
+}
+.historico-table tbody tr:hover,
+.historico-table tbody tr.active-row {
+  background: #e7effc !important;
+}
+.expand-icon {
+  text-align: right;
+  width: 38px;
+  color: #2463eb;
+  font-size: 1.3rem;
+}
+
+/* Detalhes painel */
+.detalhes-historico-panel {
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 1.25rem 1.4rem 1.3rem 1.4rem;
+  margin-top: 0.3rem;
+  margin-bottom: 0.7rem;
+  box-shadow: 0 2px 16px #2463eb10;
+}
+
+.detalhes-content h4 {
+  color: #2463eb;
+  margin-bottom: 1.1rem;
+  font-size: 1.16rem;
+}
+.detalhes-content p {
+  margin-bottom: 0.3rem;
+  font-size: 1rem;
+}
+.resultado-box {
+  background: #fff;
+  border-radius: 7px;
+  margin-top: 0.6rem;
+  padding: 0.75rem 1.15rem;
+  box-shadow: 0 1px 7px #2463eb13;
+}
+.resultado-box h5 {
+  color: #2463eb;
+  margin-bottom: 0.5rem;
+  font-size: 1.08rem;
+}
+
+/* Mensagens e loading */
+.loading-message,
+.error-message,
+.sem-consultas,
+.detalhes-loading,
+.detalhes-error,
+.no-data-message {
+  background: #f5faff;
+  color: #2463eb;
+  font-size: 1rem;
+  padding: 1rem 1.2rem;
+  border-radius: 8px;
+  margin: 1.2rem 0;
+  font-weight: 500;
+  text-align: center;
+}
+.error-message, .detalhes-error {
+  background: #fff4f4;
+  color: #d21a1a;
+}
+.sem-consultas, .no-data-message {
+  background: #f3f7fe;
+  color: #6c7891;
+}
+
+/* Paginação */
+.paginacao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.3rem;
+  margin-top: 1.2rem;
+  margin-bottom: 2.3rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+
+.paginacao button {
+  background: #2463eb;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.6rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.14s;
+  box-shadow: 0 1px 6px #2463eb15;
+}
+.paginacao button:disabled {
+  background: #cfd9ef;
+  color: #838ca3;
+  cursor: not-allowed;
+}
+.paginacao span {
+  color: #2463eb;
+}
+
+/* ===== Responsividade real de tabela ===== */
+@media (max-width: 800px) {
+  .historico-container {
+    padding: 1.2rem 0.3rem 0 0.3rem;
+    max-width: 100vw;
+    box-sizing: border-box;
+  }
+  .input-pesquisa {
+    width: 100% !important;
+    font-size: 0.98rem;
+    margin-bottom: 1.2rem;
+    padding: 0.59rem 0.7rem;
+  }
+  .historico-title {
+    font-size: 1.22rem;
+    margin-top: 1.3rem;
+    margin-bottom: 1.25rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    text-align: center;
+  }
+}
+
+/* ----------- MOBILE CARD TABLE ----------- */
+@media (max-width: 600px) {
+  .historico-table, .historico-table thead, .historico-table tbody, .historico-table th, .historico-table td, .historico-table tr {
+    display: block !important;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .historico-table {
+    background: none;
+    box-shadow: none;
+  }
+  .historico-table thead {
+    display: none !important;
+  }
+  .historico-table tr {
+    background: #fff;
+    margin-bottom: 1.05rem;
+    border-radius: 10px;
+    box-shadow: 0 1.5px 10px #2463eb13;
+    padding: 0.6rem 0.4rem 0.2rem 0.8rem;
+    position: relative;
+  }
+  .historico-table td {
+    border: none !important;
+    padding: 0.4rem 0.1rem 0.34rem 0.2rem;
+    font-size: 0.98rem;
+    text-align: left;
+    min-width: 0;
+    background: none;
+    word-break: break-word;
+    position: relative;
+  }
+  .historico-table td:before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: #2463eb;
+    display: inline-block;
+    width: 108px;
+    min-width: 80px;
+    margin-right: 7px;
+    font-size: 0.93rem;
+    vertical-align: top;
+  }
+  .expand-icon {
+    position: absolute;
+    right: 18px;
+    top: 10px;
+    font-size: 1.22rem;
+    background: none;
+    width: auto;
+  }
+  /* Detalhes painel responsivo */
+  .detalhes-historico-panel {
+    margin-left: -0.6rem;
+    margin-right: -0.6rem;
+    border-radius: 0 0 12px 12px;
+    font-size: 0.98rem;
+    padding: 1.18rem 1.1rem 1.08rem 1.13rem;
+    box-shadow: 0 1.5px 8px #2463eb12;
+  }
+  .paginacao {
+    gap: 0.5rem;
+    font-size: 0.97rem;
+    margin-bottom: 1.3rem;
+    flex-wrap: wrap;
+  }
+  .paginacao button {
+    font-size: 0.99rem;
+    padding: 0.54rem 1.2rem;
+    border-radius: 7px;
+  }
+}
+
+/* Ajuste para detalhes expandido no mobile: */
+@media (max-width: 400px) {
+
+  .input-pesquisa {
+    width: 70vw !important;
+    max-width: 99vw;
+    margin-left: 2rem;
+    font-size: 0.96rem;
+    border-radius: 7px;
+    padding: 0.49rem 0.66rem;
+  }
+  .historico-container {
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: 2.7rem;
+  }
+  .historico-table {
+    margin-left: 0.4rem;
+    margin-right: 0.4rem;
+  }
+  .detalhes-historico-panel {
+    padding: 0.68rem 0.55rem;
+    font-size: 0.94rem;
+  }
+  .historico-title {
+    font-size: 0.98rem;
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+/* Esconde barra de rolagem extra */
+.historico-table::-webkit-scrollbar { display: none; }
+

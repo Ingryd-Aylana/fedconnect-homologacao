@@ -1,0 +1,210 @@
+.consulta-fatura-container {
+    padding-left: 220px;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding-top: 20px;
+    min-height: 100vh;
+    box-sizing: border-box;
+    border-bottom: 1.5px solid #e5e9ef;
+    background: #f9fbfe;
+  }
+  
+  .consulta-fatura-container h2 {
+    color: #2463eb;
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    letter-spacing: 0.5px;
+  }
+  
+  .form-fatura {
+    background: #fff;
+    border-radius: 18px;
+    padding: 2.2rem 2.8rem 1.6rem 2.8rem;
+    box-shadow: 0 4px 24px #2463eb18;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 600px;
+    margin: 0 auto 2.5rem auto;
+    border: 1.5px solid #e4e8ee;
+    width: 100%;
+  }
+  
+  .form-fatura label {
+    font-weight: 600;
+    color: #2463eb !important;
+    margin-bottom: 0.4rem;
+    font-size: 1.15rem !important;
+  }
+  
+  .form-fatura input[type="text"] {
+    width: 100%;
+    padding: 0.8rem 1.1rem;
+    border-radius: 8px;
+    border: 1.5px solid #e4e8ee;
+    font-size: 1.08rem;
+    background: #f8fafc;
+    transition: border 0.16s;
+    margin-bottom: 0.5rem;
+  }
+  
+  .form-fatura input:focus {
+    border-color: #2463eb;
+    outline: none;
+    background: #f0f5fd;
+  }
+  
+  .form-group {
+    width: 100%;
+    margin-bottom: 1.4rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .erro-msg {
+    background: #fff4f4;
+    color: #d21a1a;
+    border-radius: 7px;
+    padding: 0.8rem 1.1rem;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    text-align: center;
+    font-weight: 600;
+  }
+  
+  .btn.btn-primary {
+    background: #2463eb;
+    color: #fff;
+    border: none;
+    border-radius: 9px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    padding: 0.75rem 2.4rem;
+    cursor: pointer;
+    transition: background 0.14s, box-shadow 0.15s;
+    box-shadow: 0 2px 8px #2463eb18;
+    margin-top: 0.2rem;
+    letter-spacing: 0.1px;
+  }
+  
+  .btn.btn-primary:disabled {
+    background: #cfd9ef;
+    color: #fff;
+    cursor: not-allowed;
+  }
+  
+  .title-consulta {
+    color: #2463eb;
+    font-size: 1.45rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    letter-spacing: 0.7px;
+  }
+  
+  .resultado-fatura {
+    margin-top: 1.4rem;
+    background: #fff;
+    border-radius: 22px;
+    padding: 2.4rem 2.9rem 2.2rem 2.9rem;
+    box-shadow: 0 8px 40px 0 #2463eb18;
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+    border: 2.5px solid #e5e9ef;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .resultado-fatura h3 {
+    color: #2463eb;
+    font-size: 1.45rem;
+    font-weight: 800;
+    margin-bottom: 1.4rem;
+    letter-spacing: 0.7px;
+    width: 100%;
+    text-align: left;
+    border-bottom: 1.5px solid #e5e9ef;
+    padding-bottom: 1rem;
+  }
+  
+  .resultado-dados {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 49% 49%;
+    gap: 1.3rem 2.7rem;
+    font-size: 1rem;
+    color: #1a2340;
+    margin-bottom: 1.3rem;
+    align-items: start;
+  }
+  
+  .campo {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    word-break: break-word;
+    margin-bottom: 0.13rem;
+    font-weight: 700;
+  }
+  
+  .campo strong {
+    color: #2463eb;
+    font-size: 1em;
+    font-weight: 700;
+    margin-bottom: 0.10rem;
+    letter-spacing: 0.10px;
+    white-space: normal;
+  }
+  
+  .campo span, .campo div:not(:first-child) {
+    font-weight: 500;
+    font-size: 1.07em;
+    color: #1a2340;
+    line-height: 1.32;
+    word-break: break-word;
+    margin-left: 2px;
+    margin-bottom: 0.09rem;
+  }
+  
+  .boleto-badge {
+    display: inline-block;
+    border-radius: 7px;
+    padding: 0.18em 1.1em;
+    font-size: 0.99em;
+    font-weight: 600;
+    background: #f3f6fa;
+    color: #dc2626;
+    margin-left: 4px;
+    margin-top: 2px;
+    letter-spacing: 0.1px;
+  }
+  .boleto-badge.sim {
+    background: #eafbf1;
+    color: #128c3c;
+  }
+  
+  @media (max-width: 1100px) {
+    .resultado-fatura {
+      max-width: 99vw;
+      padding: 1.5rem 0.6rem;
+    }
+    .resultado-dados {
+      grid-template-columns: 1fr;
+      gap: 1.09rem 0;
+    }
+  }
+  
+  @media (max-width: 430px) {
+    .consulta-fatura-container {
+      padding: 0.6rem 0.1rem;
+      margin-left: 50px;
+    }
+    .resultado-fatura {
+      padding: 1rem 0.15rem;
+    }
+  }
+  

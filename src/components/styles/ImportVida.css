@@ -1,0 +1,118 @@
+.import-vida-container {
+  padding: 38px 18px 30px 18px;
+  max-width: 520px;
+  border-radius: 18px;
+  box-shadow: 0 6px 30px rgba(36,99,235,0.08);
+  box-sizing: border-box;
+  transition: box-shadow 0.19s;
+  margin-left: 38vw;
+}
+
+.import-vida-container h1 {
+  text-align: center;
+  margin-bottom: 2.1rem;
+  color: #2463eb;
+  font-size: 1.9rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.import-vida-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+}
+
+.import-vida-form .form-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0;
+}
+
+.import-vida-form .form-row label {
+  font-weight: 700;
+  margin-bottom: 0.47rem;
+  color: #223;
+  font-size: 1.07rem;
+  letter-spacing: 0.02em;
+}
+
+.import-vida-form .form-row input {
+  padding: 0.82rem 1rem;
+  border: 1.5px solid #dbeafe;
+  border-radius: 10px;
+  font-size: 1rem;
+  background: #fff;
+  transition: border 0.18s, background 0.16s;
+  color: #222b3a;
+  font-weight: 500;
+}
+
+.import-vida-form .form-row input:focus {
+  border-color: #2463eb;
+  background: #f0f7ff;
+}
+
+.import-vida-form .full-width {
+  text-align: center;
+}
+
+.import-vida-form .btn-enviar {
+  background: linear-gradient(90deg, #2463eb 65%, #38bdf8 100%);
+  color: #fff;
+  padding: 0.85rem 1.7rem;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-top: 0.6rem;
+  box-shadow: 0 2px 12px #2463eb12;
+  transition: background 0.19s, color 0.17s;
+}
+
+.import-vida-form .btn-enviar:hover,
+.import-vida-form .btn-enviar:focus {
+  background: #2463eb;
+  color: #fff;
+}
+
+.error-alert,
+.success-alert {
+  text-align: center;
+  font-weight: 700;
+  font-size: 1rem;
+  border-radius: 8px;
+  margin-top: 1.3rem;
+  padding: 0.7rem 1.1rem;
+  box-shadow: 0 1px 8px #dc262615;
+}
+
+.error-alert {
+  color: #dc2626;
+  background: #fff1f2;
+  border: 1.5px solid #dc2626;
+}
+
+.success-alert {
+  color: #166534;
+  background: #e0fae0;
+  border: 1.5px solid #16a34a;
+}
+
+@media (max-width: 600px) {
+  .import-vida-container {
+    padding: 15px 2vw 10vw 2vw;
+    max-width: 98vw;
+    margin: 13px auto 0 auto;
+  }
+  .import-vida-container h1 {
+    font-size: 1.3rem;
+    margin-bottom: 1.2rem;
+  }
+  .import-vida-form .btn-enviar {
+    padding: 0.75rem 0.3rem;
+    font-size: 1rem;
+  }
+}

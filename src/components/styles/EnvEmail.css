@@ -1,0 +1,317 @@
+.env-email-container {
+    padding: 2rem;
+    max-width: 900px;
+}
+
+.env-email-title {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.email-title {
+    font-size: 2rem;
+    color: #2463eb;
+    font-weight: 700;
+    letter-spacing: 0.7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+}
+
+.env-email-cards {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.env-email-card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    color: black;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    width: 240px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.env-email-card:hover,
+.env-email-card.active {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.env-email-icon {
+    background-color: #007bff;
+    color: white;
+    border-radius: 50%;
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+    display: inline-block;
+}
+
+.env-email-icon svg {
+    width: 35px;
+    height: 32px;
+}
+
+.select-tipo-envio {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 100%;
+    padding: 0.6rem 2.2rem 0.6rem 0.8rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: #fff;
+    background-image: url('data:image/svg+xml;utf8,<svg fill="%23666" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M5.516 7.548l4.484 4.484 4.484-4.484.707.707-5.191 5.191-5.191-5.191z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    cursor: pointer;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.select-tipo-envio:focus {
+    outline: none;
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+}
+
+.select-tipo-envio:disabled {
+    background-color: #f4f4f4;
+    color: #777;
+    cursor: not-allowed;
+}
+
+.upload-planilha-box {
+    margin-top: 12px;
+    padding: 12px;
+    width: 450px;
+    height: 100px;
+    border: 1px dashed #cfd6df;
+    border-radius: 10px;
+    background: #f8fafc;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.upload-planilha-box:hover {
+    border-color: rgba(13, 110, 253, 0.3);
+    background: #f8fbff;
+}
+
+.btn-upload .btn-upload-content {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.upload-info {
+    font-size: 0.9rem;
+    color: #48566a;
+}
+
+.config-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #d0d7e2;
+    background: #f8fafc;
+    cursor: pointer;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.tab-btn.active {
+    background: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+}
+
+.checkbox-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #f8fafc;
+    padding: 6px 10px;
+    border-radius: 6px;
+}
+
+.email-list,
+.produto-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 10px;
+}
+
+.email-list li,
+.produto-list li {
+    display: flex;
+    justify-content: space-between;
+    background: #f8fafc;
+    padding: 6px 10px;
+    border-radius: 6px;
+    margin-bottom: 6px;
+}
+
+.btn-remove {
+    background: transparent;
+    border: none;
+    color: red;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+@media (max-width: 700px) {
+    .env-email-container, .consulta-container03 {
+      max-width: 100vw !important;
+      width: 98vw;
+      padding: 0 8px !important;
+      margin: 0 !important;
+      box-sizing: border-box;
+    }
+  
+    .email-title {
+      font-size: 1.2rem !important;
+      margin-top: 2.2rem;
+      margin-bottom: 2rem;
+      text-align: center !important;
+      padding: 0 1vw;
+      line-height: 1.3;
+      margin-left: 3rem;
+    }
+  
+    .card-options-wrapper {
+      grid-template-columns: 1fr !important;
+      gap: 1rem;
+      padding: 0 6px;
+    }
+    .card-option {
+      max-width: 97vw !important;
+      width: 80% !important;
+      margin: 0 auto;
+      padding: 1.1rem 0.4rem;
+      box-sizing: border-box;
+    }
+    .icon-container {
+      width: 48px;
+      height: 48px;
+      font-size: 1.7rem;
+      padding: 0.7rem;
+      margin-bottom: 0.5rem;
+    }
+    .card-option h5 {
+      font-size: 1rem !important;
+      word-break: break-word;
+      line-height: 1.2;
+    }
+  
+    .form-container {
+      max-width: 99vw !important;
+      width: 80% !important;
+      padding: 14px 1vw 18px 1vw !important;
+      box-sizing: border-box;
+    }
+  
+    .assunto-container label,
+    .form-container label {
+      font-size: 0.98rem !important;
+      margin-bottom: 0.25rem;
+    }
+  
+    .select-tipo-envio {
+      font-size: 0.95rem !important;
+      padding: 0.55rem 2.2rem 0.55rem 0.7rem;
+    }
+  
+    .select-tipo-envio option {
+      font-size: 0.70rem !important;
+    }
+  
+    .upload-planilha-box {
+      width: 74vw !important;
+      max-width: 97vw !important;
+      height: auto;
+      min-height: 74px;
+      padding: 10px 3vw;
+      margin-top: 10px;
+      box-sizing: border-box;
+    }
+  
+    .btn-upload {
+      width: 80% !important;
+      font-size: 1rem !important;
+      padding: 0.7rem 0 !important;
+      border-radius: 7px;
+    }
+  
+    .btn-upload-content {
+      font-size: 0.98rem;
+      gap: 7px;
+    }
+  
+    .upload-info {
+      font-size: 0.95rem;
+    }
+  
+    .consulta-btn {
+      font-size: 1rem !important;
+      width: 100% !important;
+      padding: 0.8rem 0 !important;
+      border-radius: 7px;
+      margin-top: 1rem !important;
+    }
+  
+    .message, .error-message {
+      font-size: 0.97rem !important;
+      padding: 0.5rem 2vw;
+      margin-bottom: 0.5rem;
+    }
+  
+    /* Histórico de envios (tabela) */
+    .card-resultado {
+      padding: 10px 2vw 12px 2vw !important;
+      width: 82vw !important;
+      max-width: 98vw !important;
+      min-width: 0 !important;
+      box-sizing: border-box;
+    }
+    .card-resultado h4 {
+      font-size: 1.03rem;
+      margin-bottom: 1.1rem;
+    }
+    .historico-table {
+      font-size: 0.95rem;
+      width: 100%;
+      min-width: 320px;
+      overflow-x: auto;
+    }
+    .historico-table th,
+    .historico-table td {
+      padding: 6px 2px !important;
+    }
+  }
+  

@@ -1,0 +1,64 @@
+.gradient-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(to bottom right, #0F3D5D, #D3D3D2);
+  
+}
+
+.esqueci-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #f1f4f9;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.esqueci-card {
+  background-color: #fff;
+  padding: 2rem;
+  max-width: 400px;
+  width: 100%;
+  border-radius: 16px;
+  box-shadow: 0 0 16px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.esqueci-logo {
+  width: 160px;
+  margin-bottom: 1.5rem;
+}
+
+.esqueci-titulo {
+  font-size: 1.4rem;
+  color: #0f3d5d;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.esqueci-texto {
+  font-size: 1rem;
+  color: #333;
+  background: #f7f9fb;
+  padding: 1rem;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.senha-btn {
+  padding: 0.8rem 1.2rem;
+  background-color: #fff;
+  color: #0f3d5d;
+  border: 2px solid #0f3d5d;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.esqueci-btn:hover {
+  background-color: #0f3d5d;
+  color: #fff;
+}
