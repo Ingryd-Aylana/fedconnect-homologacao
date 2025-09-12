@@ -2,6 +2,29 @@ import React, { useState } from 'react';
 import "../styles/ConsultaFat.css";
 import { ConsultaService } from '../../services/consultaService';
 
+function traduzirErroApi(mensagem) {
+    if (!mensagem) return "Erro inesperado. Por favor, tente novamente.";
+    if (typeof mensagem === "string" && mensagem.startsWith('<!DOCTYPE')) {
+        return "Erro temporário de conexão com o servidor. Tente novamente em instantes.";
+    }
+    if (mensagem.toLowerCase().includes("proxy error")) {
+        return "Serviço temporariamente indisponível. Tente novamente em alguns minutos.";
+    }
+    if (mensagem.toLowerCase().includes("502") || mensagem.toLowerCase().includes("bad gateway")) {
+        return "Não foi possível se conectar ao servidor. Por favor, tente novamente mais tarde.";
+    }
+    if (mensagem.toLowerCase().includes("timeout")) {
+        return "A requisição demorou muito. Verifique sua conexão e tente novamente.";
+    }
+    if (mensagem.toLowerCase().includes("network error")) {
+        return "Falha de comunicação com a API. Verifique sua conexão de internet.";
+    }
+    if (mensagem.toLowerCase().includes("preencha o número da fatura")) {
+        return mensagem;
+    }
+    return "Erro ao consultar faturas. Por favor, tente novamente.";
+}
+
 const ConsultaFatura = () => {
     const [fatura, setFatura] = useState('');
     const [resultado, setResultado] = useState(null);
@@ -35,36 +58,41 @@ const ConsultaFatura = () => {
                 setErro('Nenhuma fatura encontrada com o ID fornecido.');
             }
         } catch (err) {
-            const msgErro = err.response?.data?.detail || 'Erro ao consultar faturas. Tente novamente.';
-            setErro(msgErro);
+            const msgErro =
+                err.response?.data?.detail ||
+                err.response?.data?.message ||
+                err.message ||
+                'Erro ao consultar faturas. Tente novamente.';
+            setErro(traduzirErroApi(msgErro));
         } finally {
             setLoading(false);
         }
     };
 
     const formatarValor = (valor) => {
+        if (!valor && valor !== 0) return '-';
         return Number(valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     };
 
     const formatarData = (dataString) => {
-    if (!dataString) return '-';
-    let datePart;
-    if (dataString.includes('T')) {
-        [datePart] = dataString.split('T');
-    } else {
-        datePart = dataString;
-    }
-    const [year, month, day] = datePart.split('-');
-    if (!year || !month || !day) {
-        return '-';
-    }
-    const localDate = new Date(year, month - 1, day);
-    if (isNaN(localDate.getTime())) {
-        return '-';
-    }
+        if (!dataString) return '-';
+        let datePart;
+        if (dataString.includes('T')) {
+            [datePart] = dataString.split('T');
+        } else {
+            datePart = dataString;
+        }
+        const [year, month, day] = datePart.split('-');
+        if (!year || !month || !day) {
+            return '-';
+        }
+        const localDate = new Date(year, month - 1, day);
+        if (isNaN(localDate.getTime())) {
+            return '-';
+        }
 
-    return localDate.toLocaleDateString('pt-BR');
-};
+        return localDate.toLocaleDateString('pt-BR');
+    };
 
     return (
         <div className="consulta-fatura-container">
@@ -73,8 +101,7 @@ const ConsultaFatura = () => {
             </h1>
             <form className="form-fatura" onSubmit={handleConsulta}>
                 <div className="form-group">
-                    <label htmlFor="fatura"
-                        id="fatura">
+                    <label htmlFor="fatura" id="fatura">
                         Fatura:
                     </label>
                     <input
@@ -100,7 +127,6 @@ const ConsultaFatura = () => {
                             <span>{resultado.ADMINISTRADORA_NOME ||
                                 resultado.ADMINISTRADORA || "Não encontrado"}</span>
                         </div>
-
                         <div className="campo"><strong>Apólice:</strong> {resultado.APOLICE}</div>
                         <div className="campo"><strong>Prêmio Bruto:</strong> R$ {formatarValor(resultado.PREMIO_BRUTO)}</div>
                         <div className="campo"><strong>Devolução:</strong> R$ {formatarValor(resultado.DEVOLUCAO)}</div>
@@ -123,8 +149,6 @@ const ConsultaFatura = () => {
                         </div>
                         <div className="campo"><strong>Início Vigência:</strong> {formatarData(resultado.DT_INI_VIG)}</div>
                         <div className="campo"><strong>Fim Vigência:</strong> {formatarData(resultado.DT_FIM_VIG)}</div>
-
-                        
                         {resultado.DT_CANCEL && (
                             <div>
                                 <strong>Data Cancelamento:</strong> {formatarData(resultado.DT_CANCEL)}
