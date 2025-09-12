@@ -519,7 +519,6 @@ useEffect(() => {
           {error && <p className="error-message">{error}</p>}
         </div>
       )}
-      {/* Resultado: CEP único (apenas quando a consulta é por CEP) */}
       {activeForm !== "massa" &&
         resultado?.resultado_api &&
         ((resultado?.historico_salvo?.tipo_consulta || resultado?.tipo_consulta) === "endereco") && (

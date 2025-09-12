@@ -19,7 +19,6 @@ const ConsultaSegurado = () => {
 
     const [expandedIndex, setExpandedIndex] = useState(null);
 
-    // Ref para scroll automático do resultado
     const resultadoRef = useRef(null);
 
     const initialFormData = {
@@ -57,7 +56,7 @@ const ConsultaSegurado = () => {
         setActiveIndex(-1);
         setCurrentPage(1);
         setTotalPages(1);
-        setExpandedIndex(null); // Fecha qualquer accordion aberto
+        setExpandedIndex(null); 
         if (debounceTimeout.current) {
             clearTimeout(debounceTimeout.current);
         }
@@ -216,7 +215,7 @@ const ConsultaSegurado = () => {
         try {
             const response = await ConsultaService.consultarSegurados(payload);
             setResultado(response.resultado_api);
-            // O scroll será realizado pelo useEffect abaixo
+            
             if (response.total_pages) {
                 setTotalPages(response.total_pages);
                 setCurrentPage(response.current_page || page);
@@ -254,15 +253,15 @@ const ConsultaSegurado = () => {
 
     function formatarDataBR(data) {
         if (!data || typeof data !== 'string') return data;
-        // Evita reformatar se já estiver DD/MM/AAAA
+        
         if (/^\d{2}\/\d{2}\/\d{4}$/.test(data)) return data;
-        // Aceita YYYY-MM-DD, YYYY/MM/DD ou com hora no final
+        
         const match = data.match(/^(\d{4})[-\/](\d{2})[-\/](\d{2})/);
         if (match) {
             const [_, ano, mes, dia] = match;
             return `${dia}/${mes}/${ano}`;
         }
-        // Também aceita datas compactas (YYYYMMDD)
+        
         if (/^\d{8}$/.test(data)) {
             return `${data.substr(6, 2)}/${data.substr(4, 2)}/${data.substr(0, 4)}`;
         }
