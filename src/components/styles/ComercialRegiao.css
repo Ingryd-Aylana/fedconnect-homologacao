@@ -3,7 +3,7 @@
   margin: 38px auto;
   background: #fff;
   border-radius: 1.3rem;
-  box-shadow: 0 2px 16px rgba(36,99,235,0.12);
+  box-shadow: 0 2px 16px rgba(36, 99, 235, 0.12);
   padding: 2.2rem;
   display: flex;
   flex-direction: column;
@@ -35,7 +35,7 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  width: 100%;  
+  width: 100%;
   max-width: 440px;
   margin: 0 auto;
 }
@@ -70,7 +70,9 @@
   width: 100%;
 }
 
-.consulta-btn:hover { background: #2463eb; }
+.consulta-btn:hover {
+  background: #2463eb;
+}
 
 .error-message {
   color: #b81b34;
@@ -108,7 +110,7 @@
   border-radius: 13px;
   padding: 1.18rem 1rem 1rem 1.1rem;
   margin-bottom: 1.2rem;
-  box-shadow: 0 2px 10px rgba(36,99,235,0.07);
+  box-shadow: 0 2px 10px rgba(36, 99, 235, 0.07);
   border: 1.5px solid #e2eaf7;
   position: relative;
 }
@@ -152,14 +154,20 @@
   text-decoration: none;
   font-weight: 600;
 }
-.mock-phone:hover { text-decoration: underline; }
+
+.mock-phone:hover {
+  text-decoration: underline;
+}
 
 .mock-site {
   color: #22a27f;
   font-weight: 600;
   text-decoration: underline;
 }
-.mock-site:hover { color: #1858d6; }
+
+.mock-site:hover {
+  color: #1858d6;
+}
 
 .mock-tipo {
   margin-left: 2.2rem;
@@ -174,7 +182,7 @@
   border-radius: 11px;
   padding: 1.2rem 1.1rem;
   margin-bottom: 1rem;
-  box-shadow: 0 1px 5px rgba(36,99,235,0.06);
+  box-shadow: 0 1px 5px rgba(36, 99, 235, 0.06);
 }
 
 .btn-exportar-excel {
@@ -190,6 +198,7 @@
   box-shadow: 0 2px 10px #38bdf81c;
   transition: background 0.19s;
 }
+
 .btn-exportar-excel:hover {
   background: #1858d6;
 }
@@ -219,26 +228,31 @@
     box-sizing: border-box !important;
     padding: 1.1rem 0.3rem !important;
   }
+
   .comercial-title {
     font-size: 1.17rem !important;
     margin-bottom: 1rem !important;
     gap: 0.35rem !important;
   }
+
   .comercial-title .bi {
     font-size: 1.4rem !important;
   }
+
   .regiao-form {
     gap: 0.7rem !important;
     width: 100% !important;
     max-width: 98vw !important;
     margin-left: 0;
   }
+
   .form-row label {
     font-size: 0.97rem !important;
     margin-bottom: 0.13rem !important;
     padding-left: 2px !important;
     text-align: left !important;
   }
+
   .form-row input {
     font-size: 0.95rem !important;
     padding: 0.60rem !important;
@@ -246,6 +260,7 @@
     width: 100% !important;
     box-sizing: border-box !important;
   }
+
   .consulta-btn {
     width: 100% !important;
     font-size: 1rem !important;
@@ -253,7 +268,12 @@
     margin-top: 0.5rem !important;
     border-radius: 7px !important;
   }
-  .resultados-regiao { margin-top: 1.1rem !important; width: 100% !important; }
+
+  .resultados-regiao {
+    margin-top: 1.1rem !important;
+    width: 100% !important;
+  }
+
   .regiao-card,
   .regiao-card-mock {
     padding: 0.85rem 0.5rem !important;
@@ -262,10 +282,25 @@
     font-size: 0.97rem !important;
     box-sizing: border-box !important;
   }
-  .mock-title-row { gap: 0.42rem; }
-  .mock-title { font-size: 1rem !important; }
-  .mock-icon { font-size: 1.11rem !important; }
-  .mock-endereco, .mock-telefone-site, .mock-tipo { margin-left: 1.1rem !important; }
+
+  .mock-title-row {
+    gap: 0.42rem;
+  }
+
+  .mock-title {
+    font-size: 1rem !important;
+  }
+
+  .mock-icon {
+    font-size: 1.11rem !important;
+  }
+
+  .mock-endereco,
+  .mock-telefone-site,
+  .mock-tipo {
+    margin-left: 1.1rem !important;
+  }
+
   .no-results-message {
     margin-top: 1.1rem !important;
     font-size: 0.98rem !important;

@@ -6,7 +6,7 @@ const CotacaoConteudo = () => {
   const [incendio, setIncendio] = useState("");
   const [aluguel, setAluguel] = useState("");
   const [premio, setPremio] = useState("");
-  const [repasse, setRepasse] = useState(""); // agora repasse
+  const [repasse, setRepasse] = useState(""); 
   const [showResultado, setShowResultado] = useState(false);
 
   const desformatarMoeda = (valor) => {
@@ -21,7 +21,7 @@ const CotacaoConteudo = () => {
     });
   };
 
-  // Para %: mantém só números, e limita a 2 dígitos decimais
+  
   const formatarPorcentagem = (valor) => {
     let num = valor.replace(/[^0-9.,]/g, "").replace(",", ".");
     if (num === "") return "";
@@ -40,7 +40,6 @@ const CotacaoConteudo = () => {
     setShowResultado(false);
   };
 
-  // Valor monetário dos campos
   const isTotal = desformatarMoeda(incendio || "0") + desformatarMoeda(aluguel || "0");
   const premioValor = desformatarMoeda(premio || "0");
   const repassePercent = Number(repasse.replace("%", "").replace(",", ".") || 0);

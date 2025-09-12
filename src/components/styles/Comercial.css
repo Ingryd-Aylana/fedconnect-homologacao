@@ -71,7 +71,6 @@
   width: 100%;
 }
 
-
 .card-opcoes {
   width: 100%;
   max-width: 500px;
@@ -333,7 +332,6 @@
   display: flex;
 }
 
-
 .modal-coluna strong {
   color: #1a2655;
   font-weight: 600;
@@ -403,7 +401,6 @@
 .form-massa-container .btn-primary:hover:not(:disabled) {
   background-color: #084cdf;
 }
-
 
 @keyframes spin {
   to {
@@ -592,7 +589,6 @@
   }
 }
 
-
 @media (max-width: 1200px) {
 
   .comercial-page,
@@ -621,7 +617,6 @@
 }
 
 @media (max-width: 900px) {
-
   .comercial-page,
   .comercial-page.with-sidebar {
     padding-left: 16px;
@@ -640,9 +635,7 @@
   }
 }
 
-
 @media (max-width: 700px) {
-
   .comercial-page,
   .comercial-page.with-sidebar {
     padding: 1rem 2vw 1rem 2vw !important;
