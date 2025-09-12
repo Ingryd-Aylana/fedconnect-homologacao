@@ -76,7 +76,6 @@ const ConsultaCNPJ = () => {
   const [massConsultaMessage, setMassConsultaMessage] = useState("");
   const [selectedResultIndex, setSelectedResultIndex] = useState(null);
 
-  // Funções auxiliares
   const flatToBasicData = (flat) => {
     if (!flat) return null;
 
@@ -156,11 +155,9 @@ const ConsultaCNPJ = () => {
     return list?.[0]?.BasicData ?? null;
   };
 
-  // ESSA PARTE É FUNDAMENTAL!
   const cnpjData = getCnpjData(resultado);
   const resultList = getResultList(resultado);
 
-  // EFEITO DO SCROLL AUTOMÁTICO
   useEffect(() => {
     if (
       (activeForm === "cnpj" && cnpjData) ||
@@ -172,7 +169,6 @@ const ConsultaCNPJ = () => {
     }
   }, [activeForm, cnpjData, resultList]);
 
-  // Restante das funções
   const handleCnpjChange = (e) => {
     const rawCnpj = e.target.value.replace(/\D/g, "").slice(0, 14);
     setCnpj(rawCnpj);
@@ -220,7 +216,7 @@ const ConsultaCNPJ = () => {
       } else {
         const qParams = [];
         if (formData.razaoSocial.trim()) qParams.push(`name{${formData.razaoSocial.trim()}}`);
-        // Adicione outros parâmetros aqui se quiser expandir a busca
+       
 
         if (qParams.length === 0) {
           validationErrorMessage = "Nenhum parâmetro de busca válido para chaves alternativas.";

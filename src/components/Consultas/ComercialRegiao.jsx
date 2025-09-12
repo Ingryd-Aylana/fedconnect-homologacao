@@ -34,10 +34,8 @@ const ComercialRegiao = () => {
   const [resultados, setResultados] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
 
-  // Ref para scroll automático
   const resultadosRef = useRef(null);
 
-  // Scroll automático após resultados carregarem
   useEffect(() => {
     if (resultados.length > 0 && resultadosRef.current) {
       setTimeout(() => {

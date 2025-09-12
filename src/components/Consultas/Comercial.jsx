@@ -294,7 +294,7 @@ const ConsultaComercial = () => {
       </h1>
 
       <div className="card-options-accordion">
-        {/* Relacionamentos */}
+       
         <div className="accordion-card">
           <button
             className="accordion-header"
@@ -329,7 +329,7 @@ const ConsultaComercial = () => {
             </div>
           )}
         </div>
-        {/* Operacional */}
+      
         <div className="accordion-card">
           <button
             className="accordion-header"
@@ -358,7 +358,6 @@ const ConsultaComercial = () => {
         </div>
       </div>
 
-      {/* Formulários conforme card ativo */}
       {activeCard === "cnpj" && (
         <div className="form-container" ref={formCnpjRef}>
           <label>Digite o CNPJ:</label>
