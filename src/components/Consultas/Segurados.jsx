@@ -2,6 +2,30 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import "../styles/Consulta.css";
 import { ConsultaService } from "../../services/consultaService";
 
+function traduzirErroApi(mensagem) {
+    if (!mensagem) return "Erro inesperado. Por favor, tente novamente.";
+
+    if (typeof mensagem === "string" && mensagem.startsWith('<!DOCTYPE')) {
+        return "Erro temporário de conexão com o servidor. Tente novamente em instantes.";
+    }
+    if (mensagem.toLowerCase().includes("proxy error")) {
+        return "Serviço temporariamente indisponível. Tente novamente em alguns minutos.";
+    }
+    if (mensagem.toLowerCase().includes("502") || mensagem.toLowerCase().includes("bad gateway")) {
+        return "Não foi possível se conectar ao servidor. Por favor, tente novamente mais tarde.";
+    }
+    if (mensagem.toLowerCase().includes("timeout")) {
+        return "A requisição demorou muito. Verifique sua conexão e tente novamente.";
+    }
+    if (mensagem.toLowerCase().includes("network error")) {
+        return "Falha de comunicação com a API. Verifique sua conexão de internet.";
+    }
+    if (mensagem.toLowerCase().includes("pelo menos um dos campos")) {
+        return mensagem;
+    }
+    return "Erro ao realizar a consulta. Por favor, revise os dados e tente novamente.";
+}
+
 const ConsultaSegurado = () => {
     const [activeForm, setActiveForm] = useState("vida");
     const [loading, setLoading] = useState(false);
@@ -175,7 +199,9 @@ const ConsultaSegurado = () => {
             const vidaFields = ['cpf', 'nome', 'posto', 'administradora'];
             const isVidaFormEmpty = vidaFields.every(field => !formData[field]);
             if (isVidaFormEmpty) {
-                throw new Error("Pelo menos um dos campos (CPF, Nome, Posto ou Administradora) é obrigatório para Consulta Vida.");
+                setError("Pelo menos um dos campos (CPF, Nome, Posto ou Administradora) é obrigatório para Consulta Vida.");
+                setLoading(false);
+                return;
             }
 
         } else if (activeForm === "imoveis") {
@@ -192,7 +218,9 @@ const ConsultaSegurado = () => {
             const imoveisFields = ['cpf', 'cnpj', 'nome', 'endereco', 'certificado', 'administradora', 'fatura'];
             const isImoveisFormEmpty = imoveisFields.every(field => !formData[field]);
             if (isImoveisFormEmpty) {
-                throw new Error("Pelo menos um dos campos (CPF, CNPJ, Nome, Endereço, Certificado, fatura ou Administradora) é obrigatório para Consulta Imóveis.");
+                setError("Pelo menos um dos campos (CPF, CNPJ, Nome, Endereço, Certificado, fatura ou Administradora) é obrigatório para Consulta Imóveis.");
+                setLoading(false);
+                return;
             }
         }
 
@@ -215,7 +243,7 @@ const ConsultaSegurado = () => {
         try {
             const response = await ConsultaService.consultarSegurados(payload);
             setResultado(response.resultado_api);
-            
+
             if (response.total_pages) {
                 setTotalPages(response.total_pages);
                 setCurrentPage(response.current_page || page);
@@ -225,12 +253,12 @@ const ConsultaSegurado = () => {
                 setTotalPages(page);
             }
         } catch (err) {
-            const message =
+            let mensagem =
                 err.response?.data?.detail ||
                 err.response?.data?.message ||
                 err.message ||
                 "Erro ao realizar a consulta.";
-            setError(message);
+            setError(traduzirErroApi(mensagem));
         } finally {
             setLoading(false);
         }
@@ -253,21 +281,20 @@ const ConsultaSegurado = () => {
 
     function formatarDataBR(data) {
         if (!data || typeof data !== 'string') return data;
-        
+
         if (/^\d{2}\/\d{2}\/\d{4}$/.test(data)) return data;
-        
+
         const match = data.match(/^(\d{4})[-\/](\d{2})[-\/](\d{2})/);
         if (match) {
             const [_, ano, mes, dia] = match;
             return `${dia}/${mes}/${ano}`;
         }
-        
+
         if (/^\d{8}$/.test(data)) {
             return `${data.substr(6, 2)}/${data.substr(4, 2)}/${data.substr(0, 4)}`;
         }
         return data;
     }
-
 
     function formataChave(texto) {
         return texto
@@ -301,7 +328,6 @@ const ConsultaSegurado = () => {
     }
 
     function SeguradoItem({ segurado, idx }) {
-
         const uniqueId = segurado.MATRICULA || idx;
         const isExpanded = expandedIndex === uniqueId;
 

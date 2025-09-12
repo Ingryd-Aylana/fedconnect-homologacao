@@ -11,7 +11,6 @@ export default function ImportacaoVida() {
   const [form, setForm] = useState({
     administradora: "",
     codigoPosto: "",
-    posto: "",
     matricula: "",
     segurado: "",
     nascimento: "",
@@ -53,19 +52,8 @@ export default function ImportacaoVida() {
   return (
     <section className="import-vida-container">
       <h1>Importação Individual - Vida</h1>
-      <form className="import-vida-form" onSubmit={handleSubmit}>
-       
-        <div className="form-row">
-          <label>Posto</label>
-          <input
-            type="text"
-            name="posto"
-            value={form.posto}
-            onChange={handleChange}
-             placeholder="Digite o nome do posto"
-          />
-        </div>
-
+      <form className="import-vida-form" onSubmit={handleSubmit}>      
+     
         <div className="form-row">
           <label>Matrícula</label>
           <input
@@ -120,16 +108,7 @@ export default function ImportacaoVida() {
             placeholder="Digite o sexo do segurado"
           />
         </div>
-        <div className="form-row">
-          <label>Produto</label>
-          <input
-            type="text"
-            name="produto"
-            value={form.produto}
-            onChange={handleChange}
-            placeholder="Digite o produto para ser importado"
-          />
-        </div>
+        
 
         <div className="form-row full-width">
           <button type="submit" className="btn-enviar">Enviar</button>
