@@ -19,7 +19,6 @@
   margin-bottom: 2rem;
 }
 
-
 .config-form {
   margin-left: 250px;
 }
@@ -28,7 +27,6 @@
   display: flex;
   gap: 2.2rem;
   max-width: 880px;
- 
 }
 
 .config-sidebar {
@@ -262,8 +260,6 @@
   font-weight: 700;
 }
 
-
-/* Responsivo intermediário */
 @media (max-width: 1050px) {
   .config-container {
     padding-left: 0;
@@ -292,7 +288,6 @@
   }
 }
 
-/* Mobile */
 @media (max-width: 700px) {
   .config-container {
     padding: 0.9rem 0.1rem 0 0.1rem;
@@ -394,7 +389,6 @@
   }
 }
 
-/* Micro telas */
 @media (max-width: 400px) {
   .config-form,
   .config-sidebar {

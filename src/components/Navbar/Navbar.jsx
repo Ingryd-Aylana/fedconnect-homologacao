@@ -46,13 +46,13 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
       >
         <div className="sidebar-header">
           <Link to="/home" className="logo-link">
-            {/* Logo completa - só desktop */}
+            
             <img
               src="https://i.postimg.cc/Gh597vbr/LOGO.png"
               alt="Logo"
               className="logo-desktop"
             />
-            {/* Ícone pequeno - só mobile */}
+            
             <img
               src="/imagens/Fedcorp-icone01-50x50.png"
               alt="Ícone Fedcorp"
