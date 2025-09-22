@@ -9,7 +9,7 @@ export const useAuth = () => {
     return useContext(AuthContext);
 };
 
-const publicRoutes = ['/login', '/esqueci-senha', '/'];
+const publicRoutes = ['/login', '/esqueci-senha', '/', '/redefinir-senha'];
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);

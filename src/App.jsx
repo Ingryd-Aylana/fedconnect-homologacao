@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 
 import Login from './components/Login/Login';
 import EsqueciSenha from './components/Login/EsqueciSenha';
+import RedefinirSenha from './components/Login/RedefinirSenha';
 
 import Home from './components/Home/Home';
 import ConsultasHome from './components/Consultas/ConsultasHome';
@@ -59,6 +60,7 @@ function AppRoutes() {
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/esqueci-senha" element={<EsqueciSenha />} />
+        <Route path="/redefinir-senha" element={<RedefinirSenha />} />
 
         <Route element={<PrivateRoute />}>
           <Route element={<DashboardLayout />}>
