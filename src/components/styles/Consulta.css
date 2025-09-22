@@ -36,7 +36,7 @@
   justify-items: center;
   align-items: stretch;
   width: 100%;
-  margin-left: 10vw;
+  margin-left: 08vw;
 }
 
 .card-option {
@@ -600,6 +600,74 @@
   width: 100%;
 }
 
+.input-copy-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 6px;
+}
+
+.copy-btn {
+  background: #f3f7fa;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  margin-left: 2px;
+  transition: background 0.2s, color 0.2s;
+  border-radius: 6px;
+  font-size: 1.2em;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 1px 2px #0001;
+}
+
+.copy-btn:hover, .copy-btn:focus {
+  color: #20bf55;
+  background: #eafaf2;
+}
+
+.copy-btn svg {
+  vertical-align: middle;
+}
+
+.popup-copiado {
+  position: fixed;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #20bf55;
+  color: #fff;
+  border-radius: 6px;
+  padding: 10px 22px;
+  font-size: 1.13em;
+  font-weight: 500;
+  box-shadow: 0 4px 18px #0003;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  animation: popslidein .16s;
+}
+@keyframes popslidein {
+  0% { opacity: 0; top: 0;}
+  100% { opacity: 1; top: 30px;}
+}
+
+.maps-btn {
+  background: #1858d6;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 16px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.maps-btn:hover {
+  background: #1042a3;
+}
+
+
 @media (min-width: 1051px) {
 
   .consulta-container03,
@@ -739,5 +807,20 @@
 
   .seg-detalhes {
     padding: 8px 5px 9px 7px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .consulta-container03,
+  .consulta-container04 {
+    margin-left: 20vw;
+    margin-right: auto;
+    max-width: 1440px;
+  }
+
+  .form-container,
+  .card-resultado {
+    margin: 32px auto 0 auto !important; 
+    
   }
 }
