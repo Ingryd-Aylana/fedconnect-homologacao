@@ -20,6 +20,10 @@
   margin-left: 16vw;
 }
 
+.carousel-image.banner05 {
+  max-width: 50% !important;  
+}
+
 .carousel-indicators {
   margin-left: 07vw !important;
 }
