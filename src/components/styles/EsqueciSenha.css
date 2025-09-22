@@ -1,9 +1,8 @@
-.gradient-bg {
+.esqueci-gradient-bg {
   position: fixed;
   inset: 0;
   z-index: -1;
   background: linear-gradient(to bottom right, #0F3D5D, #D3D3D2);
-  
 }
 
 .esqueci-wrapper {
@@ -18,47 +17,140 @@
 
 .esqueci-card {
   background-color: #fff;
-  padding: 2rem;
-  max-width: 400px;
+  padding: 2.4rem 2rem 2rem 2rem;
+  max-width: 420px;
   width: 100%;
-  border-radius: 16px;
-  box-shadow: 0 0 16px rgba(0, 0, 0, 0.1);
+  border-radius: 22px;
+  box-shadow: 0 0 20px 0 rgba(36, 99, 235, 0.13);
   text-align: center;
 }
 
 .esqueci-logo {
-  width: 160px;
-  margin-bottom: 1.5rem;
+  width: 150px;
+  margin-bottom: 0.5rem;
 }
 
 .esqueci-titulo {
-  font-size: 1.4rem;
+  font-size: 1.55rem;
   color: #0f3d5d;
   font-weight: 700;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
+  margin-top: 0;
 }
 
 .esqueci-texto {
-  font-size: 1rem;
+  font-size: 1.01rem;
   color: #333;
   background: #f7f9fb;
-  padding: 1rem;
-  border-radius: 10px;
-  margin-bottom: 1.5rem;
+  padding: 1rem 0.5rem;
+  border-radius: 9px;
+  margin-bottom: 0.5rem;
+  margin-top: 0;
 }
 
-.senha-btn {
-  padding: 0.8rem 1.2rem;
-  background-color: #fff;
+.esqueci-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.esqueci-input-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.esqueci-input-group label {
+  font-size: 1rem;
+  font-weight: 500;
   color: #0f3d5d;
+  margin-bottom: 0.1rem;
+}
+
+.esqueci-input-group input {
+  width: 100%;
+  padding: 0.7rem 0.8rem;
+  border: 1.3px solid #c7d3ea;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: #f7f9fb;
+  color: #222;
+  transition: border 0.2s;
+}
+
+.esqueci-input-group input:focus {
+  border: 1.5px solid #0f3d5d;
+  outline: none;
+  background: #fff;
+}
+
+.esqueci-senha-btn,
+.esqueci-voltar-btn {
+  width: 100%;
+  padding: 0.9rem 0;
+  margin-top: 0.1rem;
   border: 2px solid #0f3d5d;
   border-radius: 10px;
   font-weight: 600;
+  background-color: #fff;
+  color: #0f3d5d;
   cursor: pointer;
-  transition: all 0.3s ease;
+  font-size: 1.08rem;
+  transition: all 0.25s;
+  margin-bottom: 0.35rem;
 }
 
-.esqueci-btn:hover {
+.esqueci-senha-btn:hover,
+.esqueci-voltar-btn:hover {
   background-color: #0f3d5d;
   color: #fff;
+}
+
+.esqueci-voltar-btn {
+  background-color: #f7f9fb;
+  color: #0f3d5d;
+  border: 1.3px solid #c7d3ea;
+  margin-top: 0.45rem;
+}
+
+.esqueci-voltar-btn:hover {
+  background-color: #e7f0fd;
+  color: #0f3d5d;
+}
+
+.esqueci-error-message,
+.esqueci-success-message {
+  font-size: 0.98rem;
+  margin: 0.3rem 0 0.6rem 0;
+  padding: 0.6rem 0.8rem;
+  border-radius: 7px;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.esqueci-error-message {
+  background: #ffe0e0;
+  color: #c11c23;
+  border: 1px solid #fd8b8b;
+}
+
+.esqueci-success-message {
+  background: #e3fae7;
+  color: #257f3e;
+  border: 1px solid #8ee4a6;
+}
+
+/* Responsivo para mobile */
+@media (max-width: 500px) {
+  .esqueci-card {
+    padding: 1.2rem 0.5rem 1.3rem 0.5rem;
+    max-width: 98vw;
+  }
+  .esqueci-logo {
+    width: 110px;
+  }
 }
