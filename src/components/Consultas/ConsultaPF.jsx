@@ -1,18 +1,39 @@
-import React, { useState, useRef, useEffect  } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import * as XLSX from "xlsx";
 import "../styles/Consulta.css";
 import { ConsultaService } from "../../services/consultaService";
 import { FileSpreadsheet } from "lucide-react";
+import { FiCopy, FiCheck } from "react-icons/fi";
+
+function preencherZeros(valor, tamanho) {
+  valor = String(valor).replace(/\D/g, "");
+  return valor.padStart(tamanho, "0");
+}
 
 function formatDateBR(dateStr) {
-  if (!dateStr) return 'N/A';
-  const onlyDate = dateStr.split('T')[0].split(' ')[0];
-  const [yyyy, mm, dd] = onlyDate.split('-');
+  if (!dateStr) return "N/A";
+  const onlyDate = dateStr.split("T")[0].split(" ")[0];
+  const [yyyy, mm, dd] = onlyDate.split("-");
   if (yyyy && mm && dd) return `${dd}/${mm}/${yyyy}`;
   return dateStr;
 }
 
 const ConsultaPF = () => {
+
+  const [copiado, setCopiado] = useState({});
+  const [showPopup, setShowPopup] = useState(false);
+
+  function copiarParaClipboard(texto, campo) {
+    if (!texto) return;
+    navigator.clipboard.writeText(texto);
+    setCopiado((prev) => ({ ...prev, [campo]: true }));
+    setShowPopup(true);
+    setTimeout(() => {
+      setCopiado((prev) => ({ ...prev, [campo]: false }));
+      setShowPopup(false);
+    }, 1100);
+  }
+
   const [activeForm, setActiveForm] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -64,29 +85,28 @@ const ConsultaPF = () => {
           parametro_consulta: formData.cpf,
         };
       }
-    }else if (activeForm === "chaves") {
-  if (!formData.nome.trim()) {
-    validationErrorMessage = "Por favor, preencha o campo Nome.";
-    isFormValid = false;
-  } else {
-    let formattedBirthDate = "";
-    if (formData.dataNascimento) {
-      const [year, month, day] = formData.dataNascimento.split('-');
-      const localDate = new Date(year, month - 1, day);
-      formattedBirthDate = localDate.toLocaleDateString("pt-BR");
+    } else if (activeForm === "chaves") {
+      if (!formData.nome.trim()) {
+        validationErrorMessage = "Por favor, preencha o campo Nome.";
+        isFormValid = false;
+      } else {
+        let formattedBirthDate = "";
+        if (formData.dataNascimento) {
+          const [year, month, day] = formData.dataNascimento.split("-");
+          const localDate = new Date(year, month - 1, day);
+          formattedBirthDate = localDate.toLocaleDateString("pt-BR");
+        }
+
+        payload = {
+          tipo_consulta: "cpf_alternativa",
+          parametro_consulta: JSON.stringify({
+            Datasets: "basic_data",
+            q: `name{${formData.nome}}, birthdate{${formattedBirthDate}},dateformat{dd/MM/yyyy}, mothername{${formData.motherName}}, fathername{${formData.fatherName}}`,
+            Limit: 5,
+          }),
+        };
+      }
     }
-    
-    
-    payload = {
-      tipo_consulta: "cpf_alternativa",
-      parametro_consulta: JSON.stringify({
-        Datasets: "basic_data",
-        q: `name{${formData.nome}}, birthdate{${formattedBirthDate}},dateformat{dd/MM/yyyy}, mothername{${formData.motherName}}, fathername{${formData.fatherName}}`,
-        Limit: 5,
-      }),
-    };
-  }
-}
 
     if (!isFormValid) {
       setError(validationErrorMessage);
@@ -97,19 +117,28 @@ const ConsultaPF = () => {
     try {
       const response = await ConsultaService.realizarConsulta(payload);
       setResultado(response?.data ?? response);
-      console.log("Resultado da consulta PF:", response);
-    } catch (err) {
-      const errorMessage =
-        err.response?.data?.detail ||
-        err.response?.data?.message ||
-        err.message ||
-        "Erro ao realizar consulta.";
-      setError(errorMessage);
-      console.error("Erro na consulta PF:", err.response?.data || err);
+
+
+      const apiStatus = response?.data?.resultado_api?.Status?.api
+        || response?.resultado_api?.Status?.api;
+
+      if (Array.isArray(apiStatus) && apiStatus[0]?.Code === -128) {
+        setError("Erro na base de consulta, tente novamente mais tarde");
+      } else {
+        const errorMessage =
+          apiError?.Message ||
+          err.response?.data?.detail ||
+          err.response?.data?.message ||
+          err.message ||
+          "Erro ao realizar consulta.";
+        setError(errorMessage);
+      }
+      console.error("Erro na consulta PF:", apiError || err);
     } finally {
       setLoading(false);
     }
   };
+
   const handleMassFileUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) {
@@ -133,12 +162,19 @@ const ConsultaPF = () => {
         const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
         const cpfsParaConsulta = jsonData.map((row) => ({
-          CPF: String(row.CPF || "").replace(/\D/g, ""),
+          CPF: preencherZeros(row.CPF, 11)
         }));
 
         const cpfsValidos = cpfsParaConsulta.filter(
           (item) => item.CPF.length === 11
         );
+
+        if (cpfsValidos.length > 250) {
+          setMassConsultaMessage("O limite máximo de CPFs por planilha é 250.");
+          setLoading(false);
+          if (event.target) event.target.value = null;
+          return;
+        }
 
         if (cpfsValidos.length === 0) {
           setMassConsultaMessage(
@@ -149,22 +185,110 @@ const ConsultaPF = () => {
           return;
         }
 
-        const requestBody = {
-          cpfs: cpfsValidos,
-          origem: "planilha",
-        };
-
         setMassConsultaMessage(
-          `Enviando ${cpfsValidos.length} CPFs para processamento em massa...`
+          `Iniciando a consulta de ${cpfsValidos.length} CPFs...`
         );
-        const response = await ConsultaService.processarPlanilhaCPF(
-          requestBody
-        );
-        const blob = response;
-        const url = window.URL.createObjectURL(new Blob([blob]));
+
+        const allResults = [];
+        const batchSize = 5; // Número de requisições por lote
+        const totalCpfs = cpfsValidos.length;
+
+        for (let i = 0; i < totalCpfs; i += batchSize) {
+          const batch = cpfsValidos.slice(i, i + batchSize);
+          const batchPromises = batch.map((item) => {
+            const payload = {
+              tipo_consulta: "cpf",
+              parametro_consulta: item.CPF,
+            };
+            return ConsultaService.realizarConsulta(payload);
+          });
+
+          const batchResults = await Promise.allSettled(batchPromises);
+
+          batchResults.forEach((result, idx) => {
+            if (result.status === "fulfilled") {
+              const consultaResult =
+                result.value?.resultado_api?.Result?.[0]?.BasicData;
+              if (consultaResult) {
+                allResults.push({
+                  "CPF Original": batch[idx].CPF,
+                  "Nome Completo": consultaResult.Name || "N/A",
+                  CPF: consultaResult.TaxIdNumber || "N/A",
+                  "Situação Cadastral": consultaResult.TaxIdStatus || "N/A",
+                  "Data de Nascimento": formatDateBR(consultaResult.BirthDate),
+                  Idade: consultaResult.Age || "N/A",
+                  "Nome da Mãe": consultaResult.MotherName || "N/A",
+
+                  Gênero: consultaResult.Gender || "N/A",
+                  "Nome Comum (Alias)":
+                    consultaResult.Aliases?.CommonName || "N/A",
+                  "Indicação de Óbito":
+                    consultaResult.HasObitIndication !== undefined
+                      ? consultaResult.HasObitIndication
+                        ? "Sim"
+                        : "Não"
+                      : "N/A",
+                  Erro: "N/A",
+                });
+              } else {
+                allResults.push({
+                  "CPF Original": batch[idx].CPF,
+                  "Nome Completo": "N/A",
+                  CPF: "N/A",
+                  "Situação Cadastral": "N/A",
+                  "Data de Nascimento": "N/A",
+                  Idade: "N/A",
+                  "Nome da Mãe": "N/A",
+
+                  Gênero: "N/A",
+                  "Nome Comum (Alias)": "N/A",
+                  "Indicação de Óbito": "N/A",
+                  Erro: "Nenhum resultado encontrado.",
+                });
+              }
+            } else {
+              console.error(
+                `Falha na consulta do CPF ${batch[idx].CPF}:`,
+                result.reason
+              );
+              allResults.push({
+                "CPF Original": batch[idx].CPF,
+                "Nome Completo": "N/A",
+                CPF: "N/A",
+                "Situação Cadastral": "N/A",
+                "Data de Nascimento": "N/A",
+                Idade: "N/A",
+                "Nome da Mãe": "N/A",
+
+                Gênero: "N/A",
+                "Nome Comum (Alias)": "N/A",
+                "Indicação de Óbito": "N/A",
+                Erro: `Falha na consulta. Motivo: ${result.reason?.message || "Erro de rede/servidor"
+                  }`,
+              });
+            }
+          });
+
+          const processedCount = allResults.length;
+          setMassConsultaMessage(
+            `Processando ${processedCount} de ${totalCpfs} CPFs...`
+          );
+        }
+
+        const newWorkbook = XLSX.utils.book_new();
+        const newWorksheet = XLSX.utils.json_to_sheet(allResults);
+        XLSX.utils.book_append_sheet(newWorkbook, newWorksheet, "Resultados");
+
+        const wbout = XLSX.write(newWorkbook, {
+          bookType: "xlsx",
+          type: "array",
+        });
+        const blob = new Blob([wbout], { type: "application/octet-stream" });
+
+        const url = window.URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.setAttribute("download", "planilha-resultado-cpf.xlsx");
+        link.setAttribute("download", "planilha-resultados-cpf.xlsx");
         document.body.appendChild(link);
         link.click();
         link.parentNode.removeChild(link);
@@ -174,7 +298,6 @@ const ConsultaPF = () => {
       } catch (err) {
         console.error("Erro na comunicação ou processamento do arquivo:", err);
         const errorMessage =
-          err.response?.data?.message ||
           err.message ||
           "Erro inesperado: Verifique sua conexão e o formato do arquivo.";
         setError(`Erro ao processar a planilha: ${errorMessage}`);
@@ -225,16 +348,18 @@ const ConsultaPF = () => {
   const resultadoRef = useRef(null);
 
   useEffect(() => {
-  if (
-    (activeForm === "cpf" && resultado?.resultado_api?.Result?.length > 0) ||
-    (activeForm === "chaves" && resultado?.resultado_api?.Result?.length > 0)
-  ) {
-    setTimeout(() => {
-      resultadoRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 180);
-  }
-}, [resultado, activeForm]);
-
+    if (
+      (activeForm === "cpf" && resultado?.resultado_api?.Result?.length > 0) ||
+      (activeForm === "chaves" && resultado?.resultado_api?.Result?.length > 0)
+    ) {
+      setTimeout(() => {
+        resultadoRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 180);
+    }
+  }, [resultado, activeForm]);
 
   return (
     <div className="consulta-container03">
@@ -244,8 +369,7 @@ const ConsultaPF = () => {
 
       <div className="card-options-wrapper">
         <div
-          className={`card card-option ${activeForm === "cpf" ? "active" : ""
-            }`}
+          className={`card card-option ${activeForm === "cpf" ? "active" : ""}`}
           onClick={() => {
             setActiveForm("cpf");
             setFormData({ ...formData, cpf: "" });
@@ -319,88 +443,193 @@ const ConsultaPF = () => {
         </div>
       </div>
 
-      {activeForm === "cpf" &&
-        (
+      {activeForm === "cpf" && (
+        <form className="form-container" onSubmit={handleSubmit}>
+          <label htmlFor="cpf-input">Digite o documento</label>
+          <input
+            type="text"
+            id="cpf-input"
+            name="cpf"
+            value={formData.cpf}
+            onChange={handleFormChange}
+            placeholder="Digite o CPF (apenas números)"
+            required
+            disabled={loading}
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className={`consulta-btn ${loading ? "loading" : ""}`}
+          >
+            {loading ? "Consultando..." : "Consultar"}
+          </button>
 
-          <form className="form-container" onSubmit={handleSubmit}>
-            <label htmlFor="cpf-input">Digite o documento</label>
-            <input
-              type="text"
-              id="cpf-input"
-              name="cpf"
-              value={formData.cpf}
-              onChange={handleFormChange}
-              placeholder="Digite o CPF (apenas números)"
-              required
-              disabled={loading}
-            />
-            <button
-              type="submit"
-              disabled={loading}
-              className={`consulta-btn ${loading ? "loading" : ""}`}
-            >
-              {loading ? "Consultando..." : "Consultar"}
-            </button>
-
-
-            {error && <p className="error-message">{error}</p>}
-          </form>
-        )}
-
-      {activeForm === "cpf" && resultado?.resultado_api?.Result && resultado.resultado_api.Result.length > 0 && (
-        <div className="card-resultado" ref={resultadoRef}>
-          <h4>Resultado da busca realizada</h4>
-          {(() => {
-            const resultItem = resultado.resultado_api.Result[0];
-            const basicData = resultItem?.BasicData || {};
-            return (
-              <>
-                <label>Nome Completo:</label>
-                <input type="text" value={basicData.Name || "N/A"} disabled />
-                <label>CPF:</label>
-                <input type="text" value={basicData.TaxIdNumber || "N/A"} disabled />
-                <label>Situação Cadastral:</label>
-                <input type="text" value={basicData.TaxIdStatus || "N/A"} disabled />
-                <label>Data de Nascimento:</label>
-                <input
-                  type="text"
-                  value={
-                    formatDateBR(basicData.BirthDate)
-                  }
-                  disabled
-                />
-                <label>Idade:</label>
-                <input type="text" value={basicData.Age || "N/A"} disabled />
-                <label>Nome da Mãe:</label>
-                <input type="text" value={basicData.MotherName || "N/A"} disabled />
-                <label>Nome do Pai:</label>
-                <input type="text" value={basicData.FatherName || "N/A"} disabled />
-                <label>Gênero:</label>
-                <input type="text" value={basicData.Gender || "N/A"} disabled />
-                <label>Nome Comum (Alias):</label>
-                <input type="text" value={basicData.Aliases?.CommonName || "N/A"} disabled />
-                <label>Indicação de Óbito:</label>
-                <input
-                  type="text"
-                  value={
-                    basicData.HasObitIndication !== undefined
-                      ? basicData.HasObitIndication
-                        ? "Sim"
-                        : "Não"
-                      : "N/A"
-                  }
-                  disabled
-                />
-              </>
-            );
-          })()}
-        </div>
+          {error && <p className="error-message">{error}</p>}
+        </form>
       )}
 
+      {activeForm === "cpf" &&
+        resultado?.resultado_api?.Result &&
+        resultado.resultado_api.Result.length > 0 && (
+          <div className="card-resultado" ref={resultadoRef}>
+            <h4>Resultado da busca realizada</h4>
+            {(() => {
+              const resultItem = resultado.resultado_api.Result[0];
+              const basicData = resultItem?.BasicData || {};
+              return (
+                <>
+                  <label>Nome Completo:</label>
+                  <div className="input-copy-group">
+                    <input type="text" value={basicData.Name || "N/A"} disabled />
+                    <button
+                      type="button"
+                      className="copy-btn"
+                      title="Copiar Nome"
+                      onClick={() => copiarParaClipboard(basicData.Name || "N/A", "nome")}
+                    >
+                      {copiado.nome ? <FiCheck color="#20bf55" /> : <FiCopy />}
+                    </button>
+                  </div>
+
+                  <label>CPF:</label>
+                  <div className="input-copy-group">
+                    <input type="text" value={basicData.TaxIdNumber || "N/A"} disabled />
+                    <button
+                      type="button"
+                      className="copy-btn"
+                      title="Copiar CPF"
+                      onClick={() => copiarParaClipboard(basicData.TaxIdNumber || "N/A", "cpf")}
+                    >
+                      {copiado.cpf ? <FiCheck color="#20bf55" /> : <FiCopy />}
+                    </button>
+                  </div>
+
+                  <label>Situação Cadastral:</label>
+                  <div className="input-copy-group">
+                    <input type="text" value={basicData.TaxIdStatus || "N/A"} disabled />
+                    <button
+                      type="button"
+                      className="copy-btn"
+                      title="Copiar Situação"
+                      onClick={() => copiarParaClipboard(basicData.TaxIdStatus || "N/A", "situacao")}
+                    >
+                      {copiado.situacao ? <FiCheck color="#20bf55" /> : <FiCopy />}
+                    </button>
+                  </div>
+
+                  <label>Data de Nascimento:</label>
+                  <div className="input-copy-group">
+                    <input type="text" value={formatDateBR(basicData.BirthDate)} disabled />
+                    <button
+                      type="button"
+                      className="copy-btn"
+                      title="Copiar Data de Nascimento"
+                      onClick={() => copiarParaClipboard(formatDateBR(basicData.BirthDate), "nascimento")}
+                    >
+                      {copiado.nascimento ? <FiCheck color="#20bf55" /> : <FiCopy />}
+                    </button>
+                  </div>
+
+                  <label>Idade:</label>
+                  <div className="input-copy-group">
+                    <input type="text" value={basicData.Age || "N/A"} disabled />
+                    <button
+                      type="button"
+                      className="copy-btn"
+                      title="Copiar Idade"
+                      onClick={() => copiarParaClipboard(basicData.Age || "N/A", "idade")}
+                    >
+                      {copiado.idade ? <FiCheck color="#20bf55" /> : <FiCopy />}
+                    </button>
+                  </div>
+
+                  <label>Nome da Mãe:</label>
+                  <div className="input-copy-group">
+                    <input type="text" value={basicData.MotherName || "N/A"} disabled />
+                    <button
+                      type="button"
+                      className="copy-btn"
+                      title="Copiar Nome da Mãe"
+                      onClick={() => copiarParaClipboard(basicData.MotherName || "N/A", "mae")}
+                    >
+                      {copiado.mae ? <FiCheck color="#20bf55" /> : <FiCopy />}
+                    </button>
+                  </div>
+
+                  <label>Gênero:</label>
+                  <div className="input-copy-group">
+                    <input type="text" value={basicData.Gender || "N/A"} disabled />
+                    <button
+                      type="button"
+                      className="copy-btn"
+                      title="Copiar Gênero"
+                      onClick={() => copiarParaClipboard(basicData.Gender || "N/A", "genero")}
+                    >
+                      {copiado.genero ? <FiCheck color="#20bf55" /> : <FiCopy />}
+                    </button>
+                  </div>
+
+                  <label>Nome Comum (Alias):</label>
+                  <div className="input-copy-group">
+                    <input type="text" value={basicData.Aliases?.CommonName || "N/A"} disabled />
+                    <button
+                      type="button"
+                      className="copy-btn"
+                      title="Copiar Alias"
+                      onClick={() => copiarParaClipboard(basicData.Aliases?.CommonName || "N/A", "alias")}
+                    >
+                      {copiado.alias ? <FiCheck color="#20bf55" /> : <FiCopy />}
+                    </button>
+                  </div>
+
+                  <label>Indicação de Óbito:</label>
+                  <div className="input-copy-group">
+                    <input
+                      type="text"
+                      value={
+                        basicData.HasObitIndication !== undefined
+                          ? basicData.HasObitIndication ? "Sim" : "Não"
+                          : "N/A"
+                      }
+                      disabled
+                    />
+                    <button
+                      type="button"
+                      className="copy-btn"
+                      title="Copiar Óbito"
+                      onClick={() =>
+                        copiarParaClipboard(
+                          basicData.HasObitIndication !== undefined
+                            ? basicData.HasObitIndication ? "Sim" : "Não"
+                            : "N/A",
+                          "obito"
+                        )
+                      }
+                    >
+                      {copiado.obito ? <FiCheck color="#20bf55" /> : <FiCopy />}
+                    </button>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+
+        )}
+
       {activeForm === "chaves" && (
-        <form className="form-container" ref={resultadoRef} onSubmit={handleSubmit}>
+        <form
+          className="form-container"
+          ref={resultadoRef}
+          onSubmit={handleSubmit}
+        >
           <label htmlFor="nome">
-            Nome <span className="obrigatorio" title="Campo obrigatório para busca por chaves alternativas">*</span>
+            Nome{" "}
+            <span
+              className="obrigatorio"
+              title="Campo obrigatório para busca por chaves alternativas"
+            >
+              *
+            </span>
           </label>
           <input
             type="text"
@@ -444,7 +673,9 @@ const ConsultaPF = () => {
             <option value="RS">RS</option>
           </select>
 
-          <label htmlFor="motherName" className="estado">Nome da Mãe</label>
+          <label htmlFor="motherName" className="estado">
+            Nome da Mãe
+          </label>
           <input
             type="text"
             id="motherName"
@@ -454,17 +685,10 @@ const ConsultaPF = () => {
             placeholder="Digite o nome da mãe"
             disabled={loading}
           />
-          <label htmlFor="fatherName">Nome do Pai</label>
-          <input
-            type="text"
-            id="fatherName"
-            name="fatherName"
-            value={formData.fatherName}
-            onChange={handleFormChange}
-            placeholder="Digite o nome do pai"
-            disabled={loading}
-          />
-          <button type="submit" disabled={loading || !formData.nome.trim()}
+
+          <button
+            type="submit"
+            disabled={loading || !formData.nome.trim()}
             className={`consulta-btn ${loading ? "loading" : ""}`}
           >
             {loading ? "Consultando..." : "Consultar"}
@@ -506,11 +730,15 @@ const ConsultaPF = () => {
           )}
 
           {!loading && massConsultaMessage && (
-            <div className={
-              massConsultaMessage.toLowerCase().includes("erro") || massConsultaMessage.toLowerCase().includes("falha")
-                ? "error-message"
-                : "success-message"
-            }>
+            <div
+              className={
+                massConsultaMessage.toLowerCase().includes("erro") ||
+                  massConsultaMessage.toLowerCase().includes("falha") ||
+                  massConsultaMessage.toLowerCase().includes("250")
+                  ? "error-message"
+                  : "success-message"
+              }
+            >
               {massConsultaMessage}
             </div>
           )}
@@ -519,61 +747,99 @@ const ConsultaPF = () => {
         </div>
       )}
 
-      {activeForm === "chaves" && resultado?.resultado_api?.Result && resultado.resultado_api.Result.length > 0 && (
-        <div className="card-resultado">
-          <h4>Resultados encontrados</h4>
-          <table className="historico-table">
-            <thead>
-              <tr>
-                <th>Nome</th>
-                <th>CPF</th>
-                <th>Data de Nascimento</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {resultado.resultado_api.Result.map((item, idx) => (
-                <React.Fragment key={idx}>
-                  <tr
-                    className={selectedResultIndex === idx ? 'active-row' : ''}
-                    onClick={() => handleExpandResult(idx)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <td>{item.BasicData?.Name || 'N/A'}</td>
-                    <td>{item.BasicData?.TaxIdNumber || 'N/A'}</td>
-                    <td>{formatDateBR(item.BasicData?.BirthDate)}</td>
-                    <td className="expand-icon">
-                      <i className={`bi ${selectedResultIndex === idx ? 'bi-chevron-up' : 'bi-chevron-down'}`}></i>
-                    </td>
-                  </tr>
-                  {selectedResultIndex === idx && (
-                    <tr>
-                      <td colSpan="4">
-                        <div className="detalhes-historico-panel">
-                          <p><strong>Nome:</strong> {item.BasicData?.Name || 'N/A'}</p>
-                          <p><strong>CPF:</strong> {item.BasicData?.TaxIdNumber || 'N/A'}</p>
-                          <p><strong>Situação Cadastral:</strong> {item.BasicData?.TaxIdStatus || 'N/A'}</p>
-                          <p><strong>Data de Nascimento:</strong> {formatDateBR(item.BasicData?.BirthDate)}</p>
-                          <p><strong>Nome da Mãe:</strong> {item.BasicData?.MotherName || 'N/A'}</p>
-                          <p><strong>Nome do Pai:</strong> {item.BasicData?.FatherName || 'N/A'}</p>
-                          <p><strong>Gênero:</strong> {item.BasicData?.Gender || 'N/A'}</p>
-                          <p><strong>Alias:</strong> {item.BasicData?.Aliases?.CommonName || 'N/A'}</p>
-                          <p><strong>Indicação de Óbito:</strong> {item.BasicData?.HasObitIndication !== undefined ? (item.BasicData.HasObitIndication ? 'Sim' : 'Não') : 'N/A'}</p>
-                        </div>
+      {activeForm === "chaves" &&
+        resultado?.resultado_api?.Result &&
+        resultado.resultado_api.Result.length > 0 && (
+          <div className="card-resultado">
+            <h4>Resultados encontrados</h4>
+            <table className="historico-table">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>CPF</th>
+                  <th>Data de Nascimento</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {resultado.resultado_api.Result.map((item, idx) => (
+                  <React.Fragment key={idx}>
+                    <tr
+                      className={
+                        selectedResultIndex === idx ? "active-row" : ""
+                      }
+                      onClick={() => handleExpandResult(idx)}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <td>{item.BasicData?.Name || "N/A"}</td>
+                      <td>{item.BasicData?.TaxIdNumber || "N/A"}</td>
+                      <td>{formatDateBR(item.BasicData?.BirthDate)}</td>
+                      <td className="expand-icon">
+                        <i
+                          className={`bi ${selectedResultIndex === idx
+                            ? "bi-chevron-up"
+                            : "bi-chevron-down"
+                            }`}
+                        ></i>
                       </td>
                     </tr>
-                  )}
-                </React.Fragment>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+                    {selectedResultIndex === idx && (
+                      <tr>
+                        <td colSpan="4">
+                          <div className="detalhes-historico-panel">
+                            <p>
+                              <strong>Nome:</strong>{" "}
+                              {item.BasicData?.Name || "N/A"}
+                            </p>
+                            <p>
+                              <strong>CPF:</strong>{" "}
+                              {item.BasicData?.TaxIdNumber || "N/A"}
+                            </p>
+                            <p>
+                              <strong>Situação Cadastral:</strong>{" "}
+                              {item.BasicData?.TaxIdStatus || "N/A"}
+                            </p>
+                            <p>
+                              <strong>Data de Nascimento:</strong>{" "}
+                              {formatDateBR(item.BasicData?.BirthDate)}
+                            </p>
+                            <p>
+                              <strong>Nome da Mãe:</strong>{" "}
+                              {item.BasicData?.MotherName || "N/A"}
+                            </p>
+
+                            <p>
+                              <strong>Gênero:</strong>{" "}
+                              {item.BasicData?.Gender || "N/A"}
+                            </p>
+                            <p>
+                              <strong>Alias:</strong>{" "}
+                              {item.BasicData?.Aliases?.CommonName || "N/A"}
+                            </p>
+                            <p>
+                              <strong>Indicação de Óbito:</strong>{" "}
+                              {item.BasicData?.HasObitIndication !== undefined
+                                ? item.BasicData.HasObitIndication
+                                  ? "Sim"
+                                  : "Não"
+                                : "N/A"}
+                            </p>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       {activeForm === "chaves" &&
         resultado?.resultado_api?.Result &&
         resultado.resultado_api.Result.length === 0 && (
           <div className="no-results-message">
-            Nenhum resultado encontrado para os filtros informados. Adicione mais informações.
+            Nenhum resultado encontrado para os filtros informados. Adicione
+            mais informações.
           </div>
         )}
     </div>

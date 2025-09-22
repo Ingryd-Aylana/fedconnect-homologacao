@@ -3,8 +3,24 @@ import * as XLSX from "xlsx";
 import "../styles/Consulta.css";
 import { ConsultaService } from "../../services/consultaService";
 import { FileSpreadsheet } from "lucide-react";
+import { FiCopy, FiCheck } from "react-icons/fi";
+
 
 const ConsultaEnd = () => {
+  const [copiado, setCopiado] = useState({});
+  const [showPopup, setShowPopup] = useState(false);
+
+  function copiarParaClipboard(texto, campo) {
+    if (!texto) return;
+    navigator.clipboard.writeText(texto);
+    setCopiado((prev) => ({ ...prev, [campo]: true }));
+    setShowPopup(true);
+    setTimeout(() => {
+      setCopiado((prev) => ({ ...prev, [campo]: false }));
+      setShowPopup(false);
+    }, 1000);
+  }
+
   const [activeForm, setActiveForm] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -152,7 +168,7 @@ const ConsultaEnd = () => {
         response?.resultado_api
       ) {
         setResultado(response);
-        console.log(response);
+
       } else if (response?.resultado_api) {
         setResultado(response);
       } else {
@@ -292,28 +308,28 @@ const ConsultaEnd = () => {
 
   const resultadoRef = useRef(null);
 
-useEffect(() => {
-  
-  if (
-    activeForm === "cep" &&
-    resultado?.resultado_api &&
-    (resultado?.historico_salvo?.tipo_consulta === "endereco" || resultado?.tipo_consulta === "endereco")
-  ) {
-    setTimeout(() => {
-      resultadoRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 200);
-  }
-  
-  if (
-    activeForm === "chaves" &&
-    resultado?.resultado_api?.resultados_viacep &&
-    resultado.resultado_api.resultados_viacep.length > 0
-  ) {
-    setTimeout(() => {
-      resultadoRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 200);
-  }
-}, [resultado, activeForm]);
+  useEffect(() => {
+
+    if (
+      activeForm === "cep" &&
+      resultado?.resultado_api &&
+      (resultado?.historico_salvo?.tipo_consulta === "endereco" || resultado?.tipo_consulta === "endereco")
+    ) {
+      setTimeout(() => {
+        resultadoRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 200);
+    }
+
+    if (
+      activeForm === "chaves" &&
+      resultado?.resultado_api?.resultados_viacep &&
+      resultado.resultado_api.resultados_viacep.length > 0
+    ) {
+      setTimeout(() => {
+        resultadoRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 200);
+    }
+  }, [resultado, activeForm]);
 
   return (
     <div className="consulta-container03">
@@ -522,22 +538,78 @@ useEffect(() => {
       {activeForm !== "massa" &&
         resultado?.resultado_api &&
         ((resultado?.historico_salvo?.tipo_consulta || resultado?.tipo_consulta) === "endereco") && (
-          <div className="card-resultado"  ref={resultadoRef}>
+
+          <div className="card-resultado" ref={resultadoRef}>
             <label>CEP:</label>
-            <input type="text" value={resultado.resultado_api.cep || "N/A"} disabled />
+            <div className="input-copy-group">
+              <input type="text" value={resultado.resultado_api.cep || "N/A"} disabled />
+              <button
+                type="button"
+                className="copy-btn"
+                title="Copiar CEP"
+                onClick={() => copiarParaClipboard(resultado.resultado_api.cep || "N/A", "cep")}
+              >
+                {copiado.cep ? <FiCheck color="#20bf55" /> : <FiCopy />}
+              </button>
+            </div>
+
             <label>Logradouro:</label>
-            <input type="text" value={resultado.resultado_api.street || "N/A"} disabled />
+            <div className="input-copy-group">
+              <input type="text" value={resultado.resultado_api.street || "N/A"} disabled />
+              <button
+                type="button"
+                className="copy-btn"
+                title="Copiar Logradouro"
+                onClick={() => copiarParaClipboard(resultado.resultado_api.street || "N/A", "logradouro")}
+              >
+                {copiado.logradouro ? <FiCheck color="#20bf55" /> : <FiCopy />}
+              </button>
+            </div>
+
             <label>Bairro:</label>
-            <input type="text" value={resultado.resultado_api.neighborhood || "N/A"} disabled />
+            <div className="input-copy-group">
+              <input type="text" value={resultado.resultado_api.neighborhood || "N/A"} disabled />
+              <button
+                type="button"
+                className="copy-btn"
+                title="Copiar Bairro"
+                onClick={() => copiarParaClipboard(resultado.resultado_api.neighborhood || "N/A", "bairro")}
+              >
+                {copiado.bairro ? <FiCheck color="#20bf55" /> : <FiCopy />}
+              </button>
+            </div>
+
             <label>Cidade:</label>
-            <input type="text" value={resultado.resultado_api.city || "N/A"} disabled />
+            <div className="input-copy-group">
+              <input type="text" value={resultado.resultado_api.city || "N/A"} disabled />
+              <button
+                type="button"
+                className="copy-btn"
+                title="Copiar Cidade"
+                onClick={() => copiarParaClipboard(resultado.resultado_api.city || "N/A", "cidade")}
+              >
+                {copiado.cidade ? <FiCheck color="#20bf55" /> : <FiCopy />}
+              </button>
+            </div>
+
             <label>UF:</label>
-            <input type="text" value={resultado.resultado_api.state || "N/A"} disabled />
+            <div className="input-copy-group">
+              <input type="text" value={resultado.resultado_api.state || "N/A"} disabled />
+              <button
+                type="button"
+                className="copy-btn"
+                title="Copiar UF"
+                onClick={() => copiarParaClipboard(resultado.resultado_api.state || "N/A", "uf")}
+              >
+                {copiado.uf ? <FiCheck color="#20bf55" /> : <FiCopy />}
+              </button>
+            </div>
           </div>
+
         )}
 
       {activeForm === "chaves" && resultado?.resultado_api?.resultados_viacep && resultado.resultado_api.resultados_viacep.length > 0 && (
-        <div className="card-resultado"  ref={resultadoRef}>
+        <div className="card-resultado" ref={resultadoRef}>
           <h4>Resultados encontrados</h4>
           <table className="historico-table">
             <thead>
