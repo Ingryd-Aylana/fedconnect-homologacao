@@ -2,18 +2,22 @@ import React, { useState, useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 import "../styles/Home.css";
 
-// Hook para detectar mobile/desktop
 function useIsMobile(breakpoint = 700) {
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= breakpoint);
+  const getIsMobile = () => window.innerWidth <= breakpoint;
+  const [isMobile, setIsMobile] = useState(getIsMobile());
+
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= breakpoint);
+    function handleResize() {
+      setIsMobile(getIsMobile());
+    }
     window.addEventListener("resize", handleResize);
+    handleResize();
     return () => window.removeEventListener("resize", handleResize);
   }, [breakpoint]);
+
   return isMobile;
 }
 
-// Array de banners para desktop e mobile
 const imagensCarrossel = [
   {
     src: {
@@ -47,6 +51,7 @@ const imagensCarrossel = [
       desktop: "/imagens/Banner-04-1200x675.png",
       mobile: "/imagens/Banner-04-mobile.png",
     },
+    name: "banner04",
     alt: "Banner 4",
     link: "#",
     download: false,
@@ -61,7 +66,7 @@ const Home = () => {
   useEffect(() => {
     const timer = setInterval(() => {
       setIndex((prev) => (prev + 1) % imagensCarrossel.length);
-    }, 7000);
+    }, 8000);
     return () => clearInterval(timer);
   }, []);
 
@@ -69,6 +74,10 @@ const Home = () => {
   const bannerSrc = isMobile
     ? bannerAtual.src.mobile
     : bannerAtual.src.desktop;
+
+  useEffect(() => {
+    console.log("isMobile?", isMobile, "bannerSrc:", bannerSrc);
+  }, [isMobile, bannerSrc]);
 
   return (
     <div className={`home-container${withSidebar ? " with-sidebar" : ""}`}>
@@ -85,7 +94,7 @@ const Home = () => {
             <img
               src={bannerSrc}
               alt={bannerAtual.alt || `Banner ${index + 1}`}
-              className="carousel-image"
+              className={`carousel-image${bannerAtual.name ? " " + bannerAtual.name : ""}`}
               draggable="false"
             />
           </a>
@@ -93,7 +102,7 @@ const Home = () => {
           <img
             src={bannerSrc}
             alt={bannerAtual.alt || `Banner ${index + 1}`}
-            className="carousel-image"
+            className={`carousel-image${bannerAtual.name ? " " + bannerAtual.name : ""}`}
           />
         )}
         <div className="carousel-indicators">
