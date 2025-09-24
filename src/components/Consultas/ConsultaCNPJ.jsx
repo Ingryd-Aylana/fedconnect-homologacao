@@ -280,8 +280,7 @@ const ConsultaCNPJ = () => {
 
     try {
       const response = await ConsultaService.realizarConsulta(payload);
-      const apiData = response?.data ?? response;
-
+      const apiData = response?.data ?? console.log("Retorno da API ConsultaService.realizarConsulta:", apiData);
       setResultado(apiData);
     } catch (err) {
       const friendly = getFriendlyError(err, payload);

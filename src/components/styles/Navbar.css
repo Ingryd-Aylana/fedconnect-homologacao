@@ -64,7 +64,7 @@
 
 .sidebar-nav li {
   display: block;
-  font-size: 1.08rem;
+  font-size: 0.99rem;
   margin-bottom: 2px;
   position: relative;
 }
@@ -74,7 +74,7 @@
   display: flex;
   align-items: center;
   gap: 0.7rem;
-  padding: 0.89rem 0.70rem;
+  padding: 0.5rem 0.70rem;
   color: #222;
   text-decoration: none;
   font-weight: 600;
@@ -107,7 +107,7 @@
 }
 
 .sidebar-nav li i {
-  font-size: 1.2rem;
+  font-size: 0.8rem;
 }
 
 .sidebar-icon-tooltip {
@@ -127,7 +127,7 @@
   transform: translateY(-50%);
   background: #294366;
   color: #fff;
-  padding: 5px 13px;
+  padding: 5px 5px;
   border-radius: 7px;
   font-size: 0.98rem;
   white-space: nowrap;
