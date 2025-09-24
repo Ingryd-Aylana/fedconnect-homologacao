@@ -17,7 +17,7 @@ const HistoricoConsulta = () => {
   const [detalhesError, setDetalhesError] = useState('');
   const [totalPaginas, setTotalPaginas] = useState(1);
   const [totalItens, setTotalItens] = useState(0);
-  const { user } = useAuth(); 
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchHistorico = async () => {
@@ -48,11 +48,29 @@ const HistoricoConsulta = () => {
     if (user) {
       fetchHistorico();
     }
+    // eslint-disable-next-line
   }, [user, paginaAtual]);
+
+  // Filtro e paginação
+  const consultasFiltradas = consultas.filter((consulta) => {
+    const termo = filtro.toLowerCase();
+    return (
+      (consulta.tipo_consulta_display || consulta.tipo_consulta || '').toLowerCase().includes(termo) ||
+      (consulta.parametro_consulta || '').toLowerCase().includes(termo) ||
+      (consulta.usuario_email || '').toLowerCase().includes(termo)
+    );
+  });
+
+  // Paginação sobre o array filtrado
+  const indexInicio = (paginaAtual - 1) * intensPorPagina;
+  const indexFim = indexInicio + intensPorPagina;
+  const consultasFiltradasPaginadas = consultasFiltradas.slice(indexInicio, indexFim);
 
   useEffect(() => {
     setPaginaAtual(1);
-  }, [filtro]);
+    setTotalPaginas(Math.ceil(consultasFiltradas.length / intensPorPagina));
+    // eslint-disable-next-line
+  }, [filtro, consultas]);
 
   const handleItemClick = async (consultaId) => {
     if (selectedConsultaId === consultaId) {
@@ -75,17 +93,6 @@ const HistoricoConsulta = () => {
       setDetalhesLoading(false);
     }
   };
-
-  const consultasFiltradas = consultas.filter((consulta) => {
-    const termo = filtro.toLowerCase();
-    return (
-      (consulta.tipo_consulta_display || consulta.tipo_consulta || '').toLowerCase().includes(termo) ||
-      (consulta.parametro_consulta || '').toLowerCase().includes(termo) ||
-      (consulta.usuario_email || '').toLowerCase().includes(termo)
-    );
-  });
-
-  const consultasFiltradasPaginadas = consultasFiltradas;
 
   function getParametroDisplay(consulta, detalhes = null) {
     const tiposChave = [
@@ -123,8 +130,8 @@ const HistoricoConsulta = () => {
   return (
     <div className="historico-container">
       <h1 className="historico-title">
-      <i className="bi bi-search"></i> Histórico de Consultas
-    </h1>
+        <i className="bi bi-search"></i> Histórico de Consultas
+      </h1>
 
       <input 
         type="text"
@@ -141,7 +148,11 @@ const HistoricoConsulta = () => {
         <p className="sem-consultas">Nenhuma consulta encontrada no histórico.</p>
       )}
 
-      {!loading && !error && consultas.length > 0 && (
+      {!loading && !error && consultasFiltradas.length === 0 && consultas.length > 0 && (
+        <p className="sem-consultas">Nenhum resultado encontrado para esse filtro.</p>
+      )}
+
+      {!loading && !error && consultasFiltradasPaginadas.length > 0 && (
         <>
           <table className="historico-table">
             <thead>
