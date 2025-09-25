@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 
 import Login from './components/Login/Login';
-import EsqueciSenha from './components/Login/EsqueciSenha/EsqueciSenha';
+import EsqueciSenha from './components/Login/EsqueciSenha';
 
 import Home from './components/Home/Home';
 import ConsultasHome from './components/Consultas/ConsultasHome';
