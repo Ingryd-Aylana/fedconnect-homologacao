@@ -23,6 +23,7 @@ import ConfigEmail from './components/Views/ConfigEmail';
 import AgendaSala from './components/Agenda/AgendaSala';
 
 import Acompanhamento from './components/Comercial/DashboardComercial'
+import AgendaComercial from './components/Comercial/AgendaComercial'
 
 import Conta from './components/Dropdown/dropItens/conta';
 import Config from './components/Dropdown/dropItens/Configuracoes';
@@ -87,6 +88,7 @@ function AppRoutes() {
             <Route path="/config-email" element={<ConfigEmail />} />
             <Route path="/agenda" element={<AgendaSala />} />
             <Route path="/acompanhamento" element={<Acompanhamento />} />
+            <Route path="/agenda-comercial" element={<AgendaComercial />} />
           </Route>
         </Route>
       </Routes>
