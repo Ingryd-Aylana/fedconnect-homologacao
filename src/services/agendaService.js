@@ -8,7 +8,7 @@ export const AgendaService = {
    * Busca todas as reservas de agenda do backend.
    * @returns {Promise<Array>} Uma promessa que retorna uma lista de reservas.
    */
-  getReservas: async (dataInicio, dataFim) => {
+   getReservas: async (dataInicio, dataFim) => {
     try {
       const params = {};
         params.data_inicio = dataInicio;
