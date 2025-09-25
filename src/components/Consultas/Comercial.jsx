@@ -9,23 +9,17 @@ import * as XLSX from "xlsx";
 const ConsultaComercial = () => {
   const [activeCard, setActiveCard] = useState(null);
   const [accordionOpen, setAccordionOpen] = useState(null);
-
   const resultadoRef = useRef(null);
-
   const formCnpjRef = useRef(null);
   const formMassaRef = useRef(null);
-
-
   const [form, setForm] = useState({ cnpj: "" });
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
   const [showModal, setShowModal] = useState(false);
   const [modalPersonData, setModalPersonData] = useState(null);
   const [modalLoading, setModalLoading] = useState(false);
   const [modalError, setModalError] = useState(null);
-
   const [file, setFile] = useState(null);
   const [bulkResults, setBulkResults] = useState([]);
   const [massConsultaMessage, setMassConsultaMessage] = useState("");
@@ -34,7 +28,6 @@ const ConsultaComercial = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-
     if (activeCard === "cnpj" && formCnpjRef.current) {
       setTimeout(() => {
         formCnpjRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -52,8 +45,6 @@ const ConsultaComercial = () => {
     }
   }, [activeCard]);
 
-
-
   useEffect(() => {
     if (result && resultadoRef.current) {
       setTimeout(() => {
@@ -61,7 +52,6 @@ const ConsultaComercial = () => {
       }, 220);
     }
   }, [result]);
-
 
   const handleCardClick = (option) => {
     setActiveCard(option);
@@ -89,7 +79,6 @@ const ConsultaComercial = () => {
     setLoading(true);
     try {
       const { resultado_api } = await ConsultaService.consultarComercial(form.cnpj);
-      console.log("Resposta completa da API:", resultado_api);
       const empresa = resultado_api?.Result?.[0] || null;
       if (empresa) {
         setResult(empresa);
@@ -109,7 +98,6 @@ const ConsultaComercial = () => {
     if (!cpf || person.RelatedEntityTaxIdType !== "CPF") {
       setModalError("CPF não disponível ou tipo de documento inválido.");
       setShowModal(true);
-      
       return;
     }
     setModalLoading(true);
@@ -117,7 +105,6 @@ const ConsultaComercial = () => {
     setModalPersonData(null);
     try {
       const { resultado_api } = await ConsultaService.consultarContatoComercial(cpf);
-      console.log("Resposta completa da API:", resultado_api);
       const regData = resultado_api?.Result?.[0]?.RegistrationData || null;
       if (regData) setModalPersonData(regData);
       else setModalError("Nenhum dado de contato encontrado para esta pessoa.");
@@ -198,7 +185,6 @@ const ConsultaComercial = () => {
           const workbook = XLSX.read(data, { type: "array" });
           const sheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[sheetName];
-
           const jsonSheet = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
           let cnpjs = [];
@@ -226,7 +212,6 @@ const ConsultaComercial = () => {
           );
 
           const payload = { cnpjs: cnpjs };
-
           const excelBlob = await ConsultaService.consultarComercialMassa(
             payload
           );
@@ -294,7 +279,7 @@ const ConsultaComercial = () => {
       </h1>
 
       <div className="card-options-accordion">
-       
+        {/* Accordion Relacionamentos */}
         <div className="accordion-card">
           <button
             className="accordion-header"
@@ -329,7 +314,8 @@ const ConsultaComercial = () => {
             </div>
           )}
         </div>
-      
+
+        {/* Accordion Operacional */}
         <div className="accordion-card">
           <button
             className="accordion-header"
@@ -351,7 +337,42 @@ const ConsultaComercial = () => {
                 onClick={() => navigate("/cotacao-conteudo")}
               >
                 <FaSearch size={25} className="subcard-icon" />
-                <span>Cotação Conteúdo</span>
+                <span>Estudo Conteúdo</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Accordion Painéis - NOVO */}
+        <div className="accordion-card">
+          <button
+            className="accordion-header"
+            onClick={() =>
+              setAccordionOpen(accordionOpen === "paineis" ? null : "paineis")
+            }
+            aria-expanded={accordionOpen === "paineis"}
+          >
+            <i className="bi bi-columns-gap icon-categoria"></i>
+            <span>Painéis</span>
+            <span className="accordion-arrow">
+              {accordionOpen === "paineis" ? "▲" : "▼"}
+            </span>
+          </button>
+          {accordionOpen === "paineis" && (
+            <div className="accordion-body">
+              <div
+                className="subcard-option"
+                onClick={() => navigate("/acompanhamento")}
+              >
+                <FaSearch size={23} className="subcard-icon" />
+                <span>Acompanhamento</span>
+              </div>
+              <div
+                className="subcard-option"
+                onClick={() => navigate("/agenda-comercial")}
+              >
+                <FaBriefcase size={23} className="subcard-icon" />
+                <span>Agenda Comercial</span>
               </div>
             </div>
           )}
@@ -483,67 +504,106 @@ const ConsultaComercial = () => {
               </div>
             )}
             {modalError && <div className="alert-erro">{modalError}</div>}
-            {modalPersonData && !modalLoading && !modalError && (
-              <div className="modal-dados-grid">
-                <div className="modal-coluna">
-                  <p>
-                    <strong>Nome:</strong> {modalPersonData.BasicData?.Name || "N/A"}
-                  </p>
-                  <p>
-                    <strong>CPF:</strong> {modalPersonData.BasicData?.TaxIdNumber || "N/A"}
-                  </p>
-                  <p>
-                    <strong>Gênero:</strong> {modalPersonData.BasicData?.Gender || "N/A"}
-                  </p>
-                  <p>
-                    <strong>Data de Nascimento:</strong>
-                    {modalPersonData.BasicData?.BirthDate
-                      ? new Date(modalPersonData.BasicData.BirthDate).toLocaleDateString()
-                      : "N/A"}
-                  </p>
-                  <p>
-                    <strong>Nome da Mãe:</strong> {modalPersonData.BasicData?.MotherName || "N/A"}
-                  </p>
-                  <p>
-                    <strong>Status do CPF:</strong> {modalPersonData.BasicData?.TaxIdStatus || "N/A"}
-                  </p>
-                </div>
-                <div className="modal-coluna">
-                  <p>
-                    <strong>E-mail Principal:</strong>{" "}
-                    <span style={{ wordBreak: "break-all" }}>
-                      {modalPersonData.Emails?.Primary?.EmailAddress || "N/A"}
-                    </span>
-                  </p>
-                  <p>
-                    <strong>E-mail Secundário:</strong>{" "}
-                    <span style={{ wordBreak: "break-all" }}>
-                      {modalPersonData.Emails?.Secondary?.EmailAddress || "N/A"}
-                    </span>
-                  </p>
-                  <p>
-                    <strong>Endereço Principal:</strong>{" "}
-                    {modalPersonData.Addresses?.Primary
-                      ? `${modalPersonData.Addresses.Primary.AddressMain}, ${modalPersonData.Addresses.Primary.Number}`
-                      : "N/A"}
-                  </p>
-                  <p>
-                    <strong>Endereço Secundário:</strong>{" "}
-                    {modalPersonData.Addresses?.Secondary
-                      ? `${modalPersonData.Addresses.Secondary.AddressMain}, ${modalPersonData.Addresses.Secondary.Number}`
-                      : "N/A"}
-                  </p>
-                  <p>
-                    <strong>Telefone Principal:</strong>{" "}
-                    {modalPersonData.Phones?.Primary?.AreaCode + " " + modalPersonData.Phones?.Primary?.Number|| "N/A"}
-                  </p>
-                  <p>
-                    <strong>Telefone Secundário:</strong>{" "}
-                   {modalPersonData.Phones?.Secondary?.AreaCode + " " + modalPersonData.Phones?.Secondary?.Number|| "N/A"}
-                  </p>
-                </div>
-              </div>
-            )}
+
+            {(() => {
+              function exibirValor(valor, fallback = "Não localizado") {
+                if (
+                  valor === undefined ||
+                  valor === null ||
+                  valor === "" ||
+                  valor === "undefined" ||
+                  valor === "null"
+                ) {
+                  return fallback;
+                }
+                return valor;
+              }
+
+              return (
+                modalPersonData && !modalLoading && !modalError && (
+                  <div className="modal-dados-grid">
+                    <div className="modal-coluna">
+                      <p>
+                        <strong>Nome:</strong> {exibirValor(modalPersonData.BasicData?.Name)}
+                      </p>
+                      <p>
+                        <strong>CPF:</strong> {exibirValor(modalPersonData.BasicData?.TaxIdNumber)}
+                      </p>
+                      <p>
+                        <strong>Gênero:</strong> {exibirValor(modalPersonData.BasicData?.Gender)}
+                      </p>
+                      <p>
+                        <strong>Data de Nascimento:</strong>{" "}
+                        {modalPersonData.BasicData?.BirthDate
+                          ? new Date(modalPersonData.BasicData.BirthDate).toLocaleDateString()
+                          : "Não localizado"}
+                      </p>
+                      <p>
+                        <strong>Nome da Mãe:</strong> {exibirValor(modalPersonData.BasicData?.MotherName)}
+                      </p>
+                      <p>
+                        <strong>Status do CPF:</strong> {exibirValor(modalPersonData.BasicData?.TaxIdStatus)}
+                      </p>
+                    </div>
+                    <div className="modal-coluna">
+                      <p>
+                        <strong>E-mail Principal:</strong>{" "}
+                        <span style={{ wordBreak: "break-all" }}>
+                          {exibirValor(modalPersonData.Emails?.Primary?.EmailAddress)}
+                        </span>
+                      </p>
+                      <p>
+                        <strong>E-mail Secundário:</strong>{" "}
+                        <span style={{ wordBreak: "break-all" }}>
+                          {exibirValor(modalPersonData.Emails?.Secondary?.EmailAddress)}
+                        </span>
+                      </p>
+                      <p>
+                        <strong>Endereço Principal:</strong>{" "}
+                        {modalPersonData.Addresses?.Primary &&
+                          (modalPersonData.Addresses.Primary.AddressMain ||
+                            modalPersonData.Addresses.Primary.Number)
+                          ? `${exibirValor(modalPersonData.Addresses.Primary.AddressMain)}${modalPersonData.Addresses.Primary.Number
+                            ? ", " + exibirValor(modalPersonData.Addresses.Primary.Number)
+                            : ""}`
+                          : "Não localizado"}
+                      </p>
+                      <p>
+                        <strong>Endereço Secundário:</strong>{" "}
+                        {modalPersonData.Addresses?.Secondary &&
+                          (modalPersonData.Addresses.Secondary.AddressMain ||
+                            modalPersonData.Addresses.Secondary.Number)
+                          ? `${exibirValor(modalPersonData.Addresses.Secondary.AddressMain)}${modalPersonData.Addresses.Secondary.Number
+                            ? ", " + exibirValor(modalPersonData.Addresses.Secondary.Number)
+                            : ""}`
+                          : "Não localizado"}
+                      </p>
+                      <p>
+                        <strong>Telefone Principal:</strong>{" "}
+                        {modalPersonData.Phones?.Primary &&
+                          (modalPersonData.Phones.Primary.AreaCode ||
+                            modalPersonData.Phones.Primary.Number)
+                          ? `${exibirValor(modalPersonData.Phones.Primary.AreaCode)} ${exibirValor(
+                            modalPersonData.Phones.Primary.Number
+                          )}`
+                          : "Não localizado"}
+                      </p>
+                      <p>
+                        <strong>Telefone Secundário:</strong>{" "}
+                        {modalPersonData.Phones?.Secondary &&
+                          (modalPersonData.Phones.Secondary.AreaCode ||
+                            modalPersonData.Phones.Secondary.Number)
+                          ? `${exibirValor(modalPersonData.Phones.Secondary.AreaCode)} ${exibirValor(
+                            modalPersonData.Phones.Secondary.Number
+                          )}`
+                          : "Não localizado"}
+                      </p>
+                    </div>
+                  </div>
+                )
+              );
+            })()}
+
             <div className="modal-actions">
               <button className="btn-primary" onClick={() => setShowModal(false)}>
                 Fechar
@@ -552,6 +612,7 @@ const ConsultaComercial = () => {
           </div>
         </div>
       )}
+
     </div>
   );
 };
