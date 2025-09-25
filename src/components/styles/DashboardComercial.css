@@ -1,133 +1,71 @@
-/* ===== Layout base ===== */
-.dashboard-comercial {
-  min-height: 100vh;
-  background: #f7f9fc;
-  padding: 36px 32px 28px 32px;
-  box-sizing: border-box;
-}
-
 .fedconnect-dashboard {
   margin-left: 220px;
   min-height: 100vh;
   background: #f7f9fc;
-  padding: 38px 32px 32px 32px;
+  padding: 36px 24px 24px 24px;
   box-sizing: border-box;
   overflow-x: hidden;
+  max-width: 1300px;
 }
 
 .dashboard-topo {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 15px;
   margin-bottom: 10px;
-}
-
-.dashboard-logo {
-  width: 56px;
-  height: 56px;
-  border-radius: 10px;
-  background: #fff;
-  box-shadow: 0 2px 8px #1858d611;
-  object-fit: contain;
 }
 
 .dashboard-topo h2 {
   color: #1858d6;
-  font-size: 2.1rem;
-  font-weight: 800;
+  font-size: 1.8rem;
+  font-weight: 700;
   margin: 0;
+  display: flex;
+  text-align: center;
 }
 
 .dashboard-graph-container {
   background: #fff;
-  border-radius: 1.5rem;
+  border-radius: 1.3rem;
   box-shadow: 0 4px 24px #1858d61a, 0 1px 2px #c0c4ce11;
-  padding: 18px 20px;
-  margin-bottom: 24px;
+  padding: 18px 34px;
+  margin-bottom: 16px;
   width: 100%;
-  max-width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;  /* gráfico fica na ESQUERDA, botão na DIREITA */
+  min-width: 0;
+  height: 180px;  /* altura baixa e fixa */
+  box-sizing: border-box;
+  gap: 0;
 }
 
 .graph-wrapper {
-  width: 100%;
-  min-height: 160px;   /* reserva o espaço */
-}
-
-
-.graph-title {
-  font-size: 1.25rem;
-  font-weight: 900;
-  color: #1b285c;
-  margin-bottom: 10px;
-}
-
-.graph-wrapper .recharts-responsive-container,
-.graph-wrapper .recharts-wrapper {
-  width: 100% !important;
-  height: 100% !important;
-}
-
-.dashboard-top-linha {
-  display: flex;
-  gap: 28px;
-  align-items: flex-start;
-  margin-bottom: 16px;
-}
-
-.dashboard-grafico-box {
-  background: #fff;
-  border-radius: 1.1rem;
-  box-shadow: 0 2px 12px #1858d61a;
-  padding: 18px 14px 12px 14px;
-  min-width: 270px;
-  max-width: 340px;
   width: 320px;
+  height: 78px;
   display: flex;
-  flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
+  margin-right: 10px;
 }
 
-.dashboard-miniagenda-box {
-  background: #fff;
-  border-radius: 1.1rem;
-  box-shadow: 0 2px 12px #1858d61a;
-  padding: 18px 14px 12px 18px;
-  min-width: 190px;
-  max-width: 270px;
-  width: 230px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.dashboard-miniagenda-box h3 {
-  color: #1858d6;
-  font-size: 1.09rem;
-  margin-bottom: 10px;
+.btn-exportar-relatorio {
+  background: #1858d6;
+  color: #fff;
+  border: none;
+  border-radius: 0.8rem;
+  font-size: 1.08rem;
   font-weight: 700;
+  padding: 12px 28px;
+  box-shadow: 0 2px 8px #1858d611;
+  cursor: pointer;
+  transition: background .15s;
+  white-space: nowrap;
+  margin-left: 18px;
+  align-self: center;
 }
-
-.miniagenda-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  font-size: 1rem;
-  width: 100%;
-}
-
-.miniagenda-list li {
-  margin-bottom: 7px;
-  color: #334;
-  font-weight: 500;
-}
-
-.dashboard-comercial h2 {
-  font-size: 2.4rem;
-  font-weight: 800;
-  color: #1858d6;
-  margin-bottom: 34px;
-  text-align: left;
-  letter-spacing: -1.3px;
+.btn-exportar-relatorio:hover {
+  background: #133a96;
 }
 
 .kanban-visitas {
@@ -136,7 +74,7 @@
   gap: 24px;
   justify-content: space-between;
   align-items: flex-start;
-  margin-top: 5px;
+  margin-top: 6px;
 }
 
 .kanban-col {
@@ -150,13 +88,13 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  margin-bottom: 24px;
+  margin-bottom: 22px;
   height: auto;
 }
 
 .kanban-col h4 {
   color: #1b285c;
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 900;
   padding-bottom: 10px;
   border-bottom: 2px solid #e2e6f6;
@@ -199,44 +137,50 @@
   font-weight: 700;
   box-shadow: 0 1px 4px #1858d610;
 }
-
 .kanban-card button:last-child {
   background: #f44336;
 }
-
 .kanban-card button:hover {
   filter: brightness(1.11);
 }
-
 
 @media (max-width: 1200px) {
   .kanban-visitas {
     gap: 14px;
   }
-
   .kanban-col {
     min-width: 270px;
     max-width: 99vw;
-    height: 520px;
+    height: auto;
+  }
+  .dashboard-graph-container,
+  .dashboard-botao-exportar {
+    max-width: 99vw;
+  }
+  .graph-wrapper {
+    width: 99vw;
+    max-width: 95vw;
   }
 }
 
 @media (max-width: 950px) {
   .fedconnect-dashboard {
     margin-left: 0;
-    padding: 12px 10px;
+    padding: 12px 2vw 10px 2vw;
   }
-
   .kanban-visitas {
     flex-direction: column;
     gap: 14px;
     align-items: stretch;
   }
-
   .kanban-col {
     min-width: 0;
     max-width: 99vw;
-    height: 350px;
+    height: auto;
+  }
+  .dashboard-graph-container,
+  .dashboard-botao-exportar {
+    max-width: 99vw;
   }
 }
 
@@ -245,18 +189,25 @@
     padding: 11px 8px;
     border-radius: 1rem;
   }
-
   .kanban-card {
     padding: 9px 8px;
     border-radius: .7rem;
     font-size: .97rem;
   }
-
   .graph-wrapper {
-    height: 180px;
+    height: 90px;
+    min-width: 90vw;
+    width: 99vw;
+    max-width: 99vw;
+  }
+  .dashboard-graph-container,
+  .dashboard-botao-exportar {
+    padding: 8px 2vw;
+    max-width: 99vw;
   }
 }
 
+/* ===================== MODAL FEDCONNECT ===================== */
 .modal-overlay {
   background: rgba(10, 20, 38, 0.37);
   position: fixed;

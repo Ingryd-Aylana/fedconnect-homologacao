@@ -34,33 +34,35 @@ export default function DashboardComercial() {
   }
 
   return (
-    <div className="fedconnect-dashboard">
-      <div className="dashboard-topo">
-        <h2>Dashboard Comercial</h2>
-      </div>
+  <div className="fedconnect-dashboard">
+  <div className="dashboard-topo">
+    <h2>Dashboard Comercial</h2>
+  </div>
 
-      <section className="dashboard-graph-container">
-        <div className="graph-wrapper">
-          <GraficoVisitas visitas={visitas} />
-        </div>
-      </section>
+ <section className="dashboard-graph-container">
+  <div className="graph-wrapper">
+    <GraficoVisitas visitas={visitas} />
+  </div>
+  <button className="btn-exportar-relatorio">
+    Exportar Relatório
+  </button>
+</section>
 
-      {/* === Kanban abaixo da faixa do gráfico === */}
-      <KanbanVisitas
-        visitas={visitas}
-        onConfirmar={abrirModalConfirmacao}
-        onStatusChange={atualizarStatus}
-      />
+  <KanbanVisitas
+    visitas={visitas}
+    onConfirmar={abrirModalConfirmacao}
+    onStatusChange={atualizarStatus}
+  />
 
-      {/* === Modal de confirmação/cancelamento === */}
-      {modal && (
-        <ModalConfirmarVisita
-          visita={modal}
-          onClose={() => setModal(null)}
-          onConfirm={confirmarVisita}
-          onCancelar={cancelarVisita}
-        />
-      )}
-    </div>
+  {modal && (
+    <ModalConfirmarVisita
+      visita={modal}
+      onClose={() => setModal(null)}
+      onConfirm={confirmarVisita}
+      onCancelar={cancelarVisita}
+    />
+  )}
+</div>
+
   );
 }
