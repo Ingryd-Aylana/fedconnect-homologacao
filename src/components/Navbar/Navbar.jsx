@@ -46,13 +46,13 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
       >
         <div className="sidebar-header">
           <Link to="/home" className="logo-link">
-            
+            {/* Logo completa - só desktop */}
             <img
               src="https://i.postimg.cc/Gh597vbr/LOGO.png"
               alt="Logo"
               className="logo-desktop"
             />
-            
+            {/* Ícone pequeno - só mobile */}
             <img
               src="/imagens/Fedcorp-icone01-50x50.png"
               alt="Ícone Fedcorp"
@@ -125,7 +125,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
               </li>
             )}
 
-            {["admin", "usuario", "comercial"].includes(nivelAcesso) && (
+            {/* {["admin", "usuario", "comercial"].includes(nivelAcesso) && (
               <li className={location.pathname === "/envio-email" ? "active" : ""}>
                 <Link to="/envio-email">
                   <div className="sidebar-icon-tooltip">
@@ -134,9 +134,9 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
                   </div>
                 </Link>
               </li>
-            )}
+            )} */}
 
-             {["admin", "usuario", "comercial"].includes(nivelAcesso) && (
+            {["admin", "usuario", "comercial"].includes(nivelAcesso) && (
               <li className={location.pathname === "/agenda" ? "active" : ""}>
                 <Link to="/agenda">
                   <div className="sidebar-icon-tooltip">
