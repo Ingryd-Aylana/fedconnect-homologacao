@@ -5,7 +5,6 @@ import { ConsultaService } from "../../services/consultaService";
 import { FileSpreadsheet } from "lucide-react";
 import { FiCopy, FiCheck } from "react-icons/fi";
 
-
 const ConsultaEnd = () => {
   const [copiado, setCopiado] = useState({});
   const [showPopup, setShowPopup] = useState(false);
@@ -130,7 +129,6 @@ const ConsultaEnd = () => {
         validationErrorMessage = "Por favor, preencha TODOS os campos obrigatórios: UF, Cidade e Rua.";
         isFormValid = false;
       } else {
-
         if (!/^[A-Z]{2}$/.test(formData.uf.trim().toUpperCase())) {
           validationErrorMessage = "UF inválida. Use 2 letras (ex: RJ).";
           isFormValid = false;
@@ -309,7 +307,6 @@ const ConsultaEnd = () => {
   const resultadoRef = useRef(null);
 
   useEffect(() => {
-
     if (
       activeForm === "cep" &&
       resultado?.resultado_api &&
@@ -361,8 +358,7 @@ const ConsultaEnd = () => {
         </div>
 
         <div
-          className={`card card-option ${activeForm === "chaves" ? "active" : ""
-            }`}
+          className={`card card-option ${activeForm === "chaves" ? "active" : ""}`}
           onClick={() => {
             setActiveForm("chaves");
             resetFormState();
@@ -382,8 +378,7 @@ const ConsultaEnd = () => {
         </div>
 
         <div
-          className={`card card-option ${activeForm === "massa" ? "active" : ""
-            }`}
+          className={`card card-option ${activeForm === "massa" ? "active" : ""}`}
           onClick={() => {
             setActiveForm("massa");
             resetFormState();
@@ -396,6 +391,7 @@ const ConsultaEnd = () => {
         </div>
       </div>
 
+      {/* FORMULÁRIOS */}
       {activeForm === "cep" && (
         <form className="form-container" onSubmit={handleSubmit}>
           <label htmlFor="cep">Digite o CEP para ser localizado</label>
@@ -424,7 +420,6 @@ const ConsultaEnd = () => {
 
       {activeForm === "chaves" && (
         <form className="form-container" onSubmit={handleSubmit}>
-          <p className="form-description"></p>
           <label htmlFor="uf">
             UF: <span className="obrigatorio" title="Campo obrigatório para busca por chaves alternativas">*</span>
           </label>
@@ -479,12 +474,7 @@ const ConsultaEnd = () => {
             disabled={loading}
           />
 
-          <button
-            type="submit"
-            disabled={
-              loading
-            }
-          >
+          <button type="submit" disabled={loading}>
             {loading ? "Consultando..." : "Consultar"}
           </button>
           {error && <p className="error-message">{error}</p>}
@@ -535,10 +525,11 @@ const ConsultaEnd = () => {
           {error && <p className="error-message">{error}</p>}
         </div>
       )}
+
+      {/* RESULTADO - CONSULTA POR CEP */}
       {activeForm !== "massa" &&
         resultado?.resultado_api &&
         ((resultado?.historico_salvo?.tipo_consulta || resultado?.tipo_consulta) === "endereco") && (
-
           <div className="card-resultado" ref={resultadoRef}>
             <label>CEP:</label>
             <div className="input-copy-group">
@@ -604,10 +595,25 @@ const ConsultaEnd = () => {
                 {copiado.uf ? <FiCheck color="#20bf55" /> : <FiCopy />}
               </button>
             </div>
-          </div>
 
+            {/* BOTÃO "Ver endereço no maps" */}
+            {(resultado.resultado_api.cep && resultado.resultado_api.street) && (
+              <button
+                className="maps-btn"
+                style={{ marginTop: 12, marginBottom: 10 }}
+                type="button"
+                onClick={() => {
+                  const endereco = `${resultado.resultado_api.cep} ${resultado.resultado_api.street}${resultado.resultado_api.neighborhood ? `, ${resultado.resultado_api.neighborhood}` : ""} ${resultado.resultado_api.city ? `, ${resultado.resultado_api.city}` : ""} ${resultado.resultado_api.state ? `, ${resultado.resultado_api.state}` : ""}`;
+                  window.open(`https://www.google.com/maps/place/${encodeURIComponent(endereco)}`, "_blank");
+                }}
+              >
+                Ver endereço no maps
+              </button>
+            )}
+          </div>
         )}
 
+      {/* RESULTADO - CONSULTA POR CHAVES (múltiplos) */}
       {activeForm === "chaves" && resultado?.resultado_api?.resultados_viacep && resultado.resultado_api.resultados_viacep.length > 0 && (
         <div className="card-resultado" ref={resultadoRef}>
           <h4>Resultados encontrados</h4>
@@ -647,6 +653,20 @@ const ConsultaEnd = () => {
                           <p><strong>Cidade:</strong> {item.localidade || 'N/A'}</p>
                           <p><strong>UF:</strong> {item.uf || 'N/A'}</p>
                           <p><strong>Complemento:</strong> {item.complemento || 'N/A'}</p>
+                          {/* BOTÃO "Ver endereço no maps" para cada resultado */}
+                          {(item.cep && item.logradouro) && (
+                            <button
+                              className="maps-btn"
+                              style={{ marginTop: 8 }}
+                              type="button"
+                              onClick={() => {
+                                const endereco = `${item.cep} ${item.logradouro}${item.bairro ? `, ${item.bairro}` : ""} ${item.localidade ? `, ${item.localidade}` : ""} ${item.uf ? `, ${item.uf}` : ""}`;
+                                window.open(`https://www.google.com/maps/place/${encodeURIComponent(endereco)}`, "_blank");
+                              }}
+                            >
+                              Ver endereço no maps
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -660,7 +680,6 @@ const ConsultaEnd = () => {
               Nenhum endereço encontrado para os parâmetros fornecidos.
             </div>
           )}
-
         </div>
       )}
     </div>
