@@ -13,38 +13,56 @@ export default function DashboardComercial() {
   const [modal, setModal] = useState(null);
 
   function atualizarStatus(id, novoStatus) {
-    setVisitas(visitas =>
-      visitas.map(v => v.id === id ? { ...v, status: novoStatus } : v)
-    );
+    setVisitas(vs => vs.map(v => (v.id === id ? { ...v, status: novoStatus } : v)));
   }
 
   function abrirModalConfirmacao(visita) {
     setModal(visita);
   }
 
-  function confirmarVisita(id, dados) {
-    // Aqui atualizaria no backend e no state local
-    atualizarStatus(id, "realizada");
+  function confirmarVisita(dados) {
+    // Exemplo: confirma e move para "realizada"
+    if (!modal) return;
+    atualizarStatus(modal.id, "realizada");
+    setModal(null);
+  }
+
+  function cancelarVisita() {
+    if (!modal) return;
+    atualizarStatus(modal.id, "cancelada");
     setModal(null);
   }
 
   return (
-    <div className="fedconnect-dashboard">
-      <div className="dashboard-topo">
-      
-        <h2>Dashboard Comercial</h2>
-      </div>
+  <div className="fedconnect-dashboard">
+  <div className="dashboard-topo">
+    <h2>Dashboard Comercial</h2>
+  </div>
 
-      {/* Linha: gráfico à esquerda + agenda à direita */}
-      <div className="dashboard-top-linha">
-        <div className="dashboard-grafico-box">
-          <GraficoVisitas visitas={visitas} />
-        </div>
-        
-      </div>
+ <section className="dashboard-graph-container">
+  <div className="graph-wrapper">
+    <GraficoVisitas visitas={visitas} />
+  </div>
+  <button className="btn-exportar-relatorio">
+    Exportar Relatório
+  </button>
+</section>
 
-      {/* Kanban abaixo */}
-      <KanbanVisitas visitas={visitas} onConfirmar={abrirModalConfirmacao} onStatusChange={atualizarStatus} />
-    </div>
+  <KanbanVisitas
+    visitas={visitas}
+    onConfirmar={abrirModalConfirmacao}
+    onStatusChange={atualizarStatus}
+  />
+
+  {modal && (
+    <ModalConfirmarVisita
+      visita={modal}
+      onClose={() => setModal(null)}
+      onConfirm={confirmarVisita}
+      onCancelar={cancelarVisita}
+    />
+  )}
+</div>
+
   );
 }
