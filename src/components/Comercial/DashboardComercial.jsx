@@ -4,11 +4,35 @@ import GraficoVisitas from "./GraficoVisitas";
 import ModalConfirmarVisita from "./ModalConfirmarVisita";
 import "../styles/DashboardComercial.css";
 
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+
 export default function DashboardComercial() {
+
+function exportarRelatorioExcel() {
+  
+  const dadosParaExportar = visitas.map(v => ({
+    Empresa: v.empresa,
+    Data: v.data,
+    Status: v.status,
+    Responsável: v.responsavel,
+    
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(dadosParaExportar);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Visitas");
+
+  const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+  const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+
+  saveAs(blob, "Relatorio_Visitas.xlsx");
+}
+
   const [visitas, setVisitas] = useState([
-    // Exemplo de visitas (substituir por API)
-    { id: 1, empresa: "Acme Ltda", data: "2025-09-20", status: "agendada", responsavel: "João" },
-    { id: 2, empresa: "BigCorp", data: "2025-09-19", status: "realizada", responsavel: "Ana" }
+    
+    { id: 1, empresa: "Acme Ltda", data: "20/09/2025", status: "agendada", responsavel: "João" },
+    { id: 2, empresa: "BigCorp", data: "19/09/2025", status: "realizada", responsavel: "Ana" }
   ]);
   const [modal, setModal] = useState(null);
 
@@ -43,9 +67,9 @@ export default function DashboardComercial() {
   <div className="graph-wrapper">
     <GraficoVisitas visitas={visitas} />
   </div>
-  <button className="btn-exportar-relatorio">
-    Exportar Relatório
-  </button>
+  <button className="btn-exportar-relatorio" onClick={exportarRelatorioExcel}>
+  Exportar Relatório
+</button>
 </section>
 
   <KanbanVisitas
