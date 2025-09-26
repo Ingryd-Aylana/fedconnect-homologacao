@@ -62,5 +62,17 @@ export const AgendaComercialService = {
       console.error("Erro ao confirmar visita:", error);
       throw error;
     }
+    
   },
+
+
+  deleteVisita: async (visitaId) => {
+    try {
+      await api.delete(`${API_URL}${visitaId}/`);
+    } catch (error) {
+      console.error("Erro ao excluir visita:", error);
+      throw error;
+    }
+    },
+
 };
