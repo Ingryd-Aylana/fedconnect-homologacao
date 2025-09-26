@@ -30,29 +30,32 @@ export default function AgendaComercial() {
   const isEditing = editId !== null;
 
   async function fetchVisitas(f = filters) {
-    try {
-      setLoading(true);
-      setErro("");
-      const data = await AgendaComercialService.getVisitas();
-      let visitasFiltradas = data;
-      if (f.text) {
-        const t = f.text.toLowerCase();
-        visitasFiltradas = visitasFiltradas.filter(v =>
-          (v.cliente || "").toLowerCase().includes(t) ||
-          (v.endereco || "").toLowerCase().includes(t) ||
-          (v.observacao || "").toLowerCase().includes(t) ||
-          (v.contato || "").toLowerCase().includes(t)
-        );
-      }
-      if (f.date) visitasFiltradas = visitasFiltradas.filter(v => v.data === f.date);
-      if (f.status !== "all") visitasFiltradas = visitasFiltradas.filter(v => v.status === f.status);
-      setVisitas(visitasFiltradas);
-    } catch (e) {
-      setErro("Falha ao carregar a agenda. Tente novamente.");
-    } finally {
-      setLoading(false);
+  try {
+    setLoading(true);
+    setErro("");
+    // CORREÇÃO: Acesse a propriedade 'results' da resposta
+    const response = await AgendaComercialService.getVisitas();
+    const visitasDaAPI = response.results;
+    
+    let visitasFiltradas = Array.isArray(visitasDaAPI) ? visitasDaAPI : [];
+
+    if (f.text) {
+      const t = f.text.toLowerCase();
+      visitasFiltradas = visitasFiltradas.filter(v =>
+        (v.empresa || "").toLowerCase().includes(t)
+      );
     }
+    if (f.date) visitasFiltradas = visitasFiltradas.filter(v => v.data === f.date);
+    if (f.status !== "all") visitasFiltradas = visitasFiltradas.filter(v => v.status === f.status);
+    
+    setVisitas(visitasFiltradas);
+  } catch (e) {
+    console.error("Erro ao carregar a agenda:", e); 
+    setErro("Falha ao carregar a agenda. Tente novamente.");
+  } finally {
+    setLoading(false);
   }
+}
 
   useEffect(() => { fetchVisitas(); }, []);
   useEffect(() => { fetchVisitas(filters); }, [filters]);

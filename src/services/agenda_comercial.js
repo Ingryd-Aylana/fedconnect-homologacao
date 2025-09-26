@@ -1,8 +1,7 @@
-// src/services/agendaComercialService.js
 
 import api from "./api";
 
-const API_URL = "agenda-comercial/"; // Novo endpoint no backend (você precisará criar)
+const API_URL = "comercial/agenda/"; // Novo endpoint no backend (você precisará criar)
 
 export const AgendaComercialService = {
   /**
