@@ -1,68 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "../styles/AgendaComercial.css";
-
-const STORAGE_KEY = "agenda_comercial_visitas";
-
-function readLS() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-  catch { return []; }
-}
-function writeLS(data) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-}
-function delay(ms = 200) { return new Promise(r => setTimeout(r, ms)); }
-
-const mockService = {
-  async list({ text = "", date = "", status = "all" } = {}) {
-    await delay();
-    let data = readLS();
-
-    if (text) {
-      const t = text.toLowerCase();
-      data = data.filter(v =>
-        (v.cliente || "").toLowerCase().includes(t) ||
-        (v.endereco || "").toLowerCase().includes(t) ||
-        (v.observacao || "").toLowerCase().includes(t) ||
-        (v.contato || "").toLowerCase().includes(t)
-      );
-    }
-    if (date) data = data.filter(v => v.data === date);
-    if (status !== "all") data = data.filter(v => v.status === status);
-
-    return data.sort((a, b) => `${a.data} ${a.hora}`.localeCompare(`${b.data} ${b.hora}`));
-  },
-  async create(payload) {
-    await delay();
-    const data = readLS();
-    const now = Date.now();
-    const novo = { id: now, criadoEm: now, status: "agendado", ...payload };
-    data.push(novo);
-    writeLS(data);
-    return novo;
-  },
-  async update(id, payload) {
-    await delay();
-    const data = readLS();
-    const idx = data.findIndex(v => v.id === id);
-    if (idx === -1) throw new Error("Visita não encontrada");
-    data[idx] = { ...data[idx], ...payload, atualizadoEm: Date.now() };
-    writeLS(data);
-    return data[idx];
-  },
-  async remove(id) {
-    await delay();
-    writeLS(readLS().filter(v => v.id !== id));
-    return true;
-  }
-};
-
-let ADAPTER = "mock";
-const AgendaService = {
-  list: (filters) => mockService.list(filters),
-  create: (p) => mockService.create(p),
-  update: (id, p) => mockService.update(id, p),
-  remove: (id) => mockService.remove(id),
-};
+import { AgendaComercialService } from "../../services/agenda_comercial";
 
 function formatDateBR(iso) {
   if (!iso) return "";
@@ -95,8 +33,20 @@ export default function AgendaComercial() {
     try {
       setLoading(true);
       setErro("");
-      const data = await AgendaService.list(f);
-      setVisitas(data);
+      const data = await AgendaComercialService.getVisitas();
+      let visitasFiltradas = data;
+      if (f.text) {
+        const t = f.text.toLowerCase();
+        visitasFiltradas = visitasFiltradas.filter(v =>
+          (v.cliente || "").toLowerCase().includes(t) ||
+          (v.endereco || "").toLowerCase().includes(t) ||
+          (v.observacao || "").toLowerCase().includes(t) ||
+          (v.contato || "").toLowerCase().includes(t)
+        );
+      }
+      if (f.date) visitasFiltradas = visitasFiltradas.filter(v => v.data === f.date);
+      if (f.status !== "all") visitasFiltradas = visitasFiltradas.filter(v => v.status === f.status);
+      setVisitas(visitasFiltradas);
     } catch (e) {
       setErro("Falha ao carregar a agenda. Tente novamente.");
     } finally {
@@ -149,26 +99,33 @@ export default function AgendaComercial() {
     try {
       setErro("");
       if (isEditing) {
-        await AgendaService.update(editId, form);
+        await AgendaComercialService.confirmarVisita(editId, form);
       } else {
-        await AgendaService.create(form);
+        if (AgendaComercialService.criarVisita)
+          await AgendaComercialService.criarVisita(form);
+        else
+          alert("Função criarVisita não implementada no backend!");
       }
       closeModal();
       fetchVisitas();
-    } catch (err) {
+    } catch {
       setErro("Não foi possível salvar. Tente novamente.");
     }
   }
 
   async function toggleStatus(v) {
-    const novo = v.status === "agendado" ? "concluido" : "agendado";
-    await AgendaService.update(v.id, { status: novo });
+    const novoStatus = v.status === "agendado" ? "realizada" : "agendado";
+    await AgendaComercialService.updateVisitaStatus(v.id, novoStatus);
     fetchVisitas();
   }
 
   async function removeVisita(id) {
-    if (!confirm("Confirmar exclusão da visita?")) return;
-    await AgendaService.remove(id);
+    if (!window.confirm("Confirmar exclusão da visita?")) return;
+    if (AgendaComercialService.deleteVisita) {
+      await AgendaComercialService.deleteVisita(id);
+    } else {
+      alert("Função deleteVisita não implementada no backend!");
+    }
     fetchVisitas();
   }
 
@@ -179,7 +136,6 @@ export default function AgendaComercial() {
         <button className="btn-primary" onClick={openCreate}>+ Nova Visita</button>
       </header>
 
-      {/* Filtros (embutidos) */}
       <div className="agenda-filtros">
         <input
           type="text"
@@ -198,12 +154,10 @@ export default function AgendaComercial() {
         >
           <option value="all">Todos</option>
           <option value="agendado">Agendado</option>
+          <option value="realizada">Realizada</option>
           <option value="concluido">Concluído</option>
         </select>
-        <button
-          className="btn-light"
-          onClick={() => setFilters({ text: "", date: "", status: "all" })}
-        >
+        <button className="btn-light" onClick={() => setFilters({ text: "", date: "", status: "all" })}>
           Limpar
         </button>
       </div>
@@ -225,7 +179,11 @@ export default function AgendaComercial() {
                     <div className="card-head">
                       <span className="hora">{v.hora}</span>
                       <span className={`status ${v.status}`}>
-                        {v.status === "agendado" ? "Agendado" : "Concluído"}
+                        {v.status === "agendado"
+                          ? "Agendado"
+                          : v.status === "realizada"
+                          ? "Realizada"
+                          : "Concluído"}
                       </span>
                     </div>
                     <div className="card-body">
@@ -236,7 +194,7 @@ export default function AgendaComercial() {
                     </div>
                     <div className="card-actions">
                       <button className="btn-ghost" onClick={() => toggleStatus(v)}>
-                        {v.status === "agendado" ? "Marcar como concluída" : "Voltar para agendada"}
+                        {v.status === "agendado" ? "Marcar como realizada" : "Voltar para agendada"}
                       </button>
                       <div className="spacer" />
                       <button className="btn-light" onClick={() => openEdit(v)}>Editar</button>
@@ -250,21 +208,31 @@ export default function AgendaComercial() {
         </div>
       )}
 
-      {/* Modal (embutido) */}
       {modalOpen && (
-        <div className="modal-overlay" onMouseDown={closeModal}>
-          <div className="modal" onMouseDown={(e) => e.stopPropagation()}>
+        <div
+          className="modal-overlay"
+          role="presentation"
+          onClick={closeModal}
+        >
+          <div
+            className="modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="agenda-modal-title"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="modal-header">
-              <h3>{isEditing ? "Editar Visita" : "Nova Visita"}</h3>
+              <h3 id="agenda-modal-title">{isEditing ? "Editar Visita" : "Nova Visita"}</h3>
               <button className="icon-btn" aria-label="Fechar" onClick={closeModal}>×</button>
             </div>
 
-            <div className="modal-content">
-              <form className="agenda-form" onSubmit={handleSubmit}>
+            <form className="agenda-form" onSubmit={handleSubmit} noValidate>
+             
                 <div className="grid">
                   <label>
                     Cliente/Empresa*
                     <input
+                      name="cliente"
                       type="text"
                       value={form.cliente}
                       onChange={(e) => setForm({ ...form, cliente: e.target.value })}
@@ -275,6 +243,7 @@ export default function AgendaComercial() {
                   <label>
                     Data*
                     <input
+                      name="data"
                       type="date"
                       value={form.data}
                       onChange={(e) => setForm({ ...form, data: e.target.value })}
@@ -284,6 +253,7 @@ export default function AgendaComercial() {
                   <label>
                     Hora*
                     <input
+                      name="hora"
                       type="time"
                       value={form.hora}
                       onChange={(e) => setForm({ ...form, hora: e.target.value })}
@@ -293,6 +263,7 @@ export default function AgendaComercial() {
                   <label>
                     Endereço
                     <input
+                      name="endereco"
                       type="text"
                       value={form.endereco}
                       onChange={(e) => setForm({ ...form, endereco: e.target.value })}
@@ -300,17 +271,19 @@ export default function AgendaComercial() {
                     />
                   </label>
                   <label>
-                    Contato
+                    Comercial Responsável
                     <input
+                      name="comercial"
                       type="text"
                       value={form.contato}
                       onChange={(e) => setForm({ ...form, contato: e.target.value })}
-                      placeholder="Nome do contato / telefone"
+                      placeholder="Nome do comercial responsável"
                     />
                   </label>
                   <label className="full">
                     Observação
                     <textarea
+                      name="observacao"
                       rows={4}
                       value={form.observacao}
                       onChange={(e) => setForm({ ...form, observacao: e.target.value })}
@@ -318,15 +291,14 @@ export default function AgendaComercial() {
                     />
                   </label>
                 </div>
-
-                <div className="modal-actions">
-                  <button type="button" className="btn-light" onClick={closeModal}>Cancelar</button>
-                  <button type="submit" className="btn-primary">
-                    {isEditing ? "Salvar alterações" : "Agendar"}
-                  </button>
-                </div>
-              </form>
-            </div>
+              
+              <div className="modal-actions">
+                <button type="button" className="btn-light" onClick={closeModal}>Cancelar</button>
+                <button type="submit" className="btn-primary">
+                  {isEditing ? "Salvar alterações" : "Agendar"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
