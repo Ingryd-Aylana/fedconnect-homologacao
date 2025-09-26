@@ -18,6 +18,20 @@ export const AgendaComercialService = {
     }
   },
 
+/**
+  *@returns {Promise<Object>} 
+  */
+  criarVisita: async(payload) =>{
+    try {
+      const response = await api.post(API_URL, payload);
+      return response.data;
+    } catch (error) {
+      console.error("Erro ao criar visita:", error);
+      throw error;
+    }
+  }
+,
+  /**
   /**
    * Atualiza o status de um agendamento comercial.
    * @param {number} visitaId O ID da visita.

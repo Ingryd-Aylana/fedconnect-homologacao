@@ -9,12 +9,12 @@ function formatDateBR(iso) {
 }
 
 const EMPTY_FORM = {
-  cliente: "",
+  empresa: "", 
   data: "",
-  hora: "",
+  hora: "", // Campo 'hora' adicionado
   endereco: "",
   contato: "",
-  observacao: "",
+  observacao: "", // Campo 'observacao' adicionado
   status: "agendado",
 };
 
@@ -30,43 +30,45 @@ export default function AgendaComercial() {
   const isEditing = editId !== null;
 
   async function fetchVisitas(f = filters) {
-  try {
-    setLoading(true);
-    setErro("");
-    // CORREÇÃO: Acesse a propriedade 'results' da resposta
-    const response = await AgendaComercialService.getVisitas();
-    const visitasDaAPI = response.results;
-    
-    let visitasFiltradas = Array.isArray(visitasDaAPI) ? visitasDaAPI : [];
+    try {
+      setLoading(true);
+      setErro("");
+      const response = await AgendaComercialService.getVisitas();
+      const visitasDaAPI = response.results;
 
-    if (f.text) {
-      const t = f.text.toLowerCase();
-      visitasFiltradas = visitasFiltradas.filter(v =>
-        (v.empresa || "").toLowerCase().includes(t)
-      );
+      let visitasFiltradas = Array.isArray(visitasDaAPI) ? visitasDaAPI : [];
+
+      if (f.text) {
+        const t = f.text.toLowerCase();
+        visitasFiltradas = visitasFiltradas.filter(v =>
+          (v.empresa || "").toLowerCase().includes(t)
+        );
+      }
+      if (f.date) visitasFiltradas = visitasFiltradas.filter(v => v.data === f.date);
+      if (f.status !== "all") visitasFiltradas = visitasFiltradas.filter(v => v.status === f.status);
+
+      setVisitas(visitasFiltradas);
+    } catch (e) {
+      console.error("Erro ao carregar a agenda:", e);
+      setErro("Falha ao carregar a agenda. Tente novamente.");
+    } finally {
+      setLoading(false);
     }
-    if (f.date) visitasFiltradas = visitasFiltradas.filter(v => v.data === f.date);
-    if (f.status !== "all") visitasFiltradas = visitasFiltradas.filter(v => v.status === f.status);
-    
-    setVisitas(visitasFiltradas);
-  } catch (e) {
-    console.error("Erro ao carregar a agenda:", e); 
-    setErro("Falha ao carregar a agenda. Tente novamente.");
-  } finally {
-    setLoading(false);
   }
-}
 
   useEffect(() => { fetchVisitas(); }, []);
   useEffect(() => { fetchVisitas(filters); }, [filters]);
 
   const grouped = useMemo(() => {
+    if (!Array.isArray(visitas)) {
+      return [];
+    }
     const byDate = {};
     visitas.forEach(v => {
       byDate[v.data] = byDate[v.data] || [];
       byDate[v.data].push(v);
     });
-    return Object.entries(byDate).sort(([a],[b]) => a.localeCompare(b));
+    return Object.entries(byDate).sort(([a], [b]) => a.localeCompare(b));
   }, [visitas]);
 
   function openCreate() {
@@ -74,19 +76,20 @@ export default function AgendaComercial() {
     setForm(EMPTY_FORM);
     setModalOpen(true);
   }
+
   function openEdit(v) {
     setEditId(v.id);
     setForm({
-      cliente: v.cliente || "",
+      empresa: v.empresa || "", 
       data: v.data || "",
-      hora: v.hora || "",
-      endereco: v.endereco || "",
-      contato: v.contato || "",
-      observacao: v.observacao || "",
+      hora: v.hora || "", // Adicionado
+      observacao: v.obs || "", // Adicionado
       status: v.status || "agendado",
+      // Outros campos podem ser mantidos se o backend for expandido
     });
     setModalOpen(true);
   }
+
   function closeModal() {
     setModalOpen(false);
     setEditId(null);
@@ -95,23 +98,29 @@ export default function AgendaComercial() {
 
   async function handleSubmit(e) {
     e?.preventDefault();
-    if (!form.cliente || !form.data || !form.hora) {
-      setErro("Preencha cliente, data e hora.");
+    if (!form.empresa || !form.data) {
+      setErro("Preencha cliente/empresa e data.");
       return;
     }
     try {
       setErro("");
+      const payload = {
+        empresa: form.empresa,
+        data: form.data,
+        hora: form.hora, // Adicionado
+        obs: form.observacao, // Adicionado
+        status: form.status,
+      };
+
       if (isEditing) {
-        await AgendaComercialService.confirmarVisita(editId, form);
+        await AgendaComercialService.confirmarVisita(editId, payload);
       } else {
-        if (AgendaComercialService.criarVisita)
-          await AgendaComercialService.criarVisita(form);
-        else
-          alert("Função criarVisita não implementada no backend!");
+        await AgendaComercialService.criarVisita(payload);
       }
       closeModal();
       fetchVisitas();
-    } catch {
+    } catch(err) {
+      console.error("Erro ao salvar:", err);
       setErro("Não foi possível salvar. Tente novamente.");
     }
   }
@@ -138,11 +147,10 @@ export default function AgendaComercial() {
         <h2>Agenda Comercial</h2>
         <button className="btn-primary" onClick={openCreate}>+ Nova Visita</button>
       </header>
-
       <div className="agenda-filtros">
         <input
           type="text"
-          placeholder="Buscar por cliente, endereço, observação…"
+          placeholder="Buscar por empresa…"
           value={filters.text}
           onChange={(e) => setFilters({ ...filters, text: e.target.value })}
         />
@@ -158,15 +166,12 @@ export default function AgendaComercial() {
           <option value="all">Todos</option>
           <option value="agendado">Agendado</option>
           <option value="realizada">Realizada</option>
-          <option value="concluido">Concluído</option>
         </select>
         <button className="btn-light" onClick={() => setFilters({ text: "", date: "", status: "all" })}>
           Limpar
         </button>
       </div>
-
       {erro && <div className="alert error">{erro}</div>}
-
       {loading ? (
         <div className="skeleton">Carregando visitas…</div>
       ) : grouped.length === 0 ? (
@@ -180,20 +185,15 @@ export default function AgendaComercial() {
                 {items.map(v => (
                   <article key={v.id} className={`card ${v.status}`}>
                     <div className="card-head">
-                      <span className="hora">{v.hora}</span>
+                      <span className="hora">{v.hora}</span> {/* Exibe a hora */}
                       <span className={`status ${v.status}`}>
-                        {v.status === "agendado"
-                          ? "Agendado"
-                          : v.status === "realizada"
-                          ? "Realizada"
-                          : "Concluído"}
+                        {v.status === "agendado" ? "Agendado" : "Realizada"}
                       </span>
                     </div>
                     <div className="card-body">
-                      <div className="linha"><strong>Cliente/Empresa:</strong> {v.cliente}</div>
-                      {v.endereco && <div className="linha"><strong>Endereço:</strong> {v.endereco}</div>}
-                      {v.contato && <div className="linha"><strong>Contato:</strong> {v.contato}</div>}
-                      {v.observacao && <div className="obs">{v.observacao}</div>}
+                      <div className="linha"><strong>Cliente/Empresa:</strong> {v.empresa}</div>
+                      <div className="linha"><strong>Responsável ID:</strong> {v.responsavel}</div>
+                      {v.obs && <div className="obs">{v.obs}</div>} {/* Exibe a observação */}
                     </div>
                     <div className="card-actions">
                       <button className="btn-ghost" onClick={() => toggleStatus(v)}>
@@ -210,7 +210,6 @@ export default function AgendaComercial() {
           ))}
         </div>
       )}
-
       {modalOpen && (
         <div
           className="modal-overlay"
@@ -228,73 +227,61 @@ export default function AgendaComercial() {
               <h3 id="agenda-modal-title">{isEditing ? "Editar Visita" : "Nova Visita"}</h3>
               <button className="icon-btn" aria-label="Fechar" onClick={closeModal}>×</button>
             </div>
-
             <form className="agenda-form" onSubmit={handleSubmit} noValidate>
-             
-                <div className="grid">
-                  <label>
-                    Cliente/Empresa*
-                    <input
-                      name="cliente"
-                      type="text"
-                      value={form.cliente}
-                      onChange={(e) => setForm({ ...form, cliente: e.target.value })}
-                      placeholder="Ex.: Cond. Jardim das Flores"
-                      required
-                    />
-                  </label>
-                  <label>
-                    Data*
-                    <input
-                      name="data"
-                      type="date"
-                      value={form.data}
-                      onChange={(e) => setForm({ ...form, data: e.target.value })}
-                      required
-                    />
-                  </label>
-                  <label>
-                    Hora*
-                    <input
-                      name="hora"
-                      type="time"
-                      value={form.hora}
-                      onChange={(e) => setForm({ ...form, hora: e.target.value })}
-                      required
-                    />
-                  </label>
-                  <label>
-                    Endereço
-                    <input
-                      name="endereco"
-                      type="text"
-                      value={form.endereco}
-                      onChange={(e) => setForm({ ...form, endereco: e.target.value })}
-                      placeholder="Rua, número, bairro, cidade - UF"
-                    />
-                  </label>
-                  <label>
-                    Comercial Responsável
-                    <input
-                      name="comercial"
-                      type="text"
-                      value={form.contato}
-                      onChange={(e) => setForm({ ...form, contato: e.target.value })}
-                      placeholder="Nome do comercial responsável"
-                    />
-                  </label>
-                  <label className="full">
-                    Observação
-                    <textarea
-                      name="observacao"
-                      rows={4}
-                      value={form.observacao}
-                      onChange={(e) => setForm({ ...form, observacao: e.target.value })}
-                      placeholder="Detalhes da visita, objetivos, etc."
-                    />
-                  </label>
-                </div>
-              
+              <div className="grid">
+                <label>
+                  Cliente/Empresa*
+                  <input
+                    name="empresa"
+                    type="text"
+                    value={form.empresa}
+                    onChange={(e) => setForm({ ...form, empresa: e.target.value })}
+                    placeholder="Ex.: Cond. Jardim das Flores"
+                    required
+                  />
+                </label>
+                <label>
+                  Data*
+                  <input
+                    name="data"
+                    type="date"
+                    value={form.data}
+                    onChange={(e) => setForm({ ...form, data: e.target.value })}
+                    required
+                  />
+                </label>
+                <label>
+                  Hora
+                  <input
+                    name="hora"
+                    type="time"
+                    value={form.hora}
+                    onChange={(e) => setForm({ ...form, hora: e.target.value })}
+                  />
+                </label>
+                <label>
+                  Status*
+                  <select
+                    name="status"
+                    value={form.status}
+                    onChange={(e) => setForm({ ...form, status: e.target.value })}
+                    required
+                  >
+                    <option value="agendado">Agendado</option>
+                    <option value="realizada">Realizada</option>
+                  </select>
+                </label>
+                <label className="full">
+                  Observação
+                  <textarea
+                    name="observacao"
+                    rows={4}
+                    value={form.observacao}
+                    onChange={(e) => setForm({ ...form, observacao: e.target.value })}
+                    placeholder="Detalhes da visita, objetivos, etc."
+                  />
+                </label>
+              </div>
               <div className="modal-actions">
                 <button type="button" className="btn-light" onClick={closeModal}>Cancelar</button>
                 <button type="submit" className="btn-primary">
