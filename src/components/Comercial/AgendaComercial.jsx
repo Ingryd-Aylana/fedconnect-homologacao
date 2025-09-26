@@ -34,6 +34,7 @@ export default function AgendaComercial() {
       setLoading(true);
       setErro("");
       const response = await AgendaComercialService.getVisitas();
+      console.log(response)
       const visitasDaAPI = response.results;
 
       let visitasFiltradas = Array.isArray(visitasDaAPI) ? visitasDaAPI : [];
@@ -192,7 +193,7 @@ export default function AgendaComercial() {
                     </div>
                     <div className="card-body">
                       <div className="linha"><strong>Cliente/Empresa:</strong> {v.empresa}</div>
-                      <div className="linha"><strong>Responsável ID:</strong> {v.responsavel}</div>
+                      <div className="linha"><strong>Responsável:</strong> {v.responsavel.nome_completo}</div>
                       {v.obs && <div className="obs">{v.obs}</div>} {/* Exibe a observação */}
                     </div>
                     <div className="card-actions">
