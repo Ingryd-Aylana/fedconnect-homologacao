@@ -27,11 +27,12 @@ export default function GraficoVisitas({ visitas }) {
     };
   }, []);
 
-  const dados = [
-    { nome: "Agendadas", valor: visitas.filter(v => v.status === "agendada").length },
-    { nome: "Realizadas", valor: visitas.filter(v => v.status === "realizada").length },
-    { nome: "Canceladas", valor: visitas.filter(v => v.status === "cancelada").length },
-  ];
+ const dados = [
+  { nome: "Agendadas", valor: visitas.filter(v => v.status && v.status.toLowerCase() === "agendado").length },
+  { nome: "Realizadas", valor: visitas.filter(v => v.status && v.status.toLowerCase() === "realizada").length },
+  { nome: "Canceladas", valor: visitas.filter(v => v.status && v.status.toLowerCase() === "cancelada").length },
+];
+
 
   // Evita render antes de medir
   const chartWidth = Math.max(width, 320);  // largura mínima

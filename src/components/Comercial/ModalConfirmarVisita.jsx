@@ -10,13 +10,6 @@ export default function ModalConfirmarVisita({ visita, onClose, onConfirm, onCan
     onConfirm({ comentario, resultado });
   }
 
-  function handleCancelarVisita(e) {
-    e.preventDefault();
-    if (window.confirm("Tem certeza que deseja cancelar esta visita?")) {
-      onCancelar();
-    }
-  }
-
   return (
     <div className="modal-overlay">
       <form onSubmit={handleSubmit} className="modal-fedconnect" autoComplete="off">

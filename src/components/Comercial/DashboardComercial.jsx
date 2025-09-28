@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import KanbanVisitas from "./KanbanVisitas";
 import GraficoVisitas from "./GraficoVisitas";
-import ModalConfirmarVisita from "./ModalConfirmarVisita";
+import DetalheVisita from "./DetalheVisita"; // <- Importa o modal de detalhes
 import { AgendaComercialService } from "../../services/agenda_comercial";
 import "../styles/DashboardComercial.css";
 
@@ -13,6 +13,7 @@ export default function DashboardComercial() {
   const [modal, setModal] = useState(null);
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState("");
+  const [visitaDetalhe, setVisitaDetalhe] = useState(null); // <- Novo: controla modal de detalhes
 
   async function fetchVisitas() {
     try {
@@ -20,7 +21,7 @@ export default function DashboardComercial() {
       setErro("");
       const response = await AgendaComercialService.getVisitas();
       setVisitas(response.results);
-      console.log(visitas)
+      // console.log(response.results); // Debug se quiser
     } catch (e) {
       console.error("Erro ao carregar visitas:", e);
       setErro("Falha ao carregar as visitas. Tente novamente.");
@@ -29,7 +30,6 @@ export default function DashboardComercial() {
     }
   }
 
-  // Carrega as visitas quando o componente é montado
   useEffect(() => {
     fetchVisitas();
   }, []);
@@ -39,8 +39,9 @@ export default function DashboardComercial() {
       Empresa: v.empresa,
       Data: v.data,
       Status: v.status,
-      // Se 'responsavel' for um objeto, pegue o nome do usuário
-      Responsável: v.responsavel ? v.responsavel.username : "N/A",
+      Responsável: v.responsavel
+        ? v.responsavel.nome_completo || v.responsavel.username || "N/A"
+        : "N/A",
     }));
 
     const ws = XLSX.utils.json_to_sheet(dadosParaExportar);
@@ -67,32 +68,7 @@ export default function DashboardComercial() {
     setModal(visita);
   }
 
-  async function confirmarVisita(dados) {
-    if (!modal) return;
-    try {
-      // Aqui você pode chamar um serviço específico de confirmação se houver
-      // Ou apenas usar o atualizarStatus como antes
-      await AgendaComercialService.updateVisitaStatus(modal.id, "realizada");
-      setModal(null);
-      fetchVisitas();
-    } catch (e) {
-      console.error("Erro ao confirmar visita:", e);
-      setErro("Não foi possível confirmar a visita.");
-    }
-  }
-
-  async function cancelarVisita() {
-    if (!modal) return;
-    try {
-      await AgendaComercialService.updateVisitaStatus(modal.id, "cancelada");
-      setModal(null);
-      fetchVisitas();
-    } catch (e) {
-      console.error("Erro ao cancelar visita:", e);
-      setErro("Não foi possível cancelar a visita.");
-    }
-  }
-
+  // Renderização da tela principal
   if (loading) {
     return (
       <div className="fedconnect-dashboard">
@@ -128,14 +104,14 @@ export default function DashboardComercial() {
         visitas={visitas}
         onConfirmar={abrirModalConfirmacao}
         onStatusChange={atualizarStatus}
+        onCardClick={setVisitaDetalhe} // <- Novo: prop para abrir modal de detalhes
       />
 
-      {modal && (
-        <ModalConfirmarVisita
-          visita={modal}
-          onClose={() => setModal(null)}
-          onConfirm={confirmarVisita}
-          onCancelar={cancelarVisita}
+      {/* Modal de detalhes da visita */}
+      {visitaDetalhe && (
+        <DetalheVisita
+          visita={visitaDetalhe}
+          onClose={() => setVisitaDetalhe(null)}
         />
       )}
     </div>
