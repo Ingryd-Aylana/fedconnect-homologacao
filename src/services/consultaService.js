@@ -144,8 +144,8 @@ export const ConsultaService = {
     return response.data;
   },
 
-  getAdms: async (payload) => {
-    const response = await api.get(`/administradoras/?administradora=${payload}&page_size=5`);
+  getAdms: async () => {
+    const response = await api.get(`/administradoras/`);
     return response.data;
   },
   getfatura: async (payload) => {
