@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import "../styles/Consulta.css";
 import { ConsultaService } from "../../services/consultaService";
+import { resolveNomeApoliceFromRecord } from "../../services/apoliceDePara";
 
 function traduzirErroApi(mensagem) {
   if (!mensagem) return "Erro inesperado. Por favor, tente novamente.";
@@ -164,7 +165,6 @@ const ConsultaSegurado = () => {
     setActiveIndex(-1);
   }, []);
 
-  // Nova função para formatar o ID da administradora
   const formatAdministradoraId = (id) => {
     if (id === null || id === undefined) return null;
     const idString = String(id);
@@ -177,6 +177,7 @@ const ConsultaSegurado = () => {
     setError(null);
     setResultado(null);
     setCurrentPage(page);
+    setExpandedIndex(null);
 
     let parametroConsultaObj = {};
     let isFormEmpty = true;
@@ -195,7 +196,6 @@ const ConsultaSegurado = () => {
         isFormEmpty = false;
       }
       if (selectedAdministradora) {
-        // Usa a chave 'administradora' e formata o ID
         parametroConsultaObj.administradora = formatAdministradoraId(selectedAdministradora.PESSOA);
         isFormEmpty = false;
       } else if (administradoraInputValue) {
@@ -210,7 +210,12 @@ const ConsultaSegurado = () => {
         setLoading(false);
         return;
       }
-    } else if (activeForm === "imoveis") {
+    }
+
+    else if (activeForm === "imoveis") {
+      let hasCertificadoOrEndereco = false;
+      let hasAdministradora = false;
+
       if (formData.cpf) {
         parametroConsultaObj.cpf_cnpj = formData.cpf.replace(/\D/g, "");
         isFormEmpty = false;
@@ -226,22 +231,34 @@ const ConsultaSegurado = () => {
       if (formData.endereco) {
         parametroConsultaObj.endereco = formData.endereco.toUpperCase();
         isFormEmpty = false;
+        hasCertificadoOrEndereco = true;
       }
       if (formData.certificado) {
         parametroConsultaObj.certificado = formData.certificado;
         isFormEmpty = false;
+        hasCertificadoOrEndereco = true;
       }
       if (formData.fatura) {
         parametroConsultaObj.fatura = formData.fatura.replace(/\D/g, "");
         isFormEmpty = false;
       }
+
       if (selectedAdministradora) {
-        // Usa a chave 'administradora' e formata o ID
         parametroConsultaObj.administradora = formatAdministradoraId(selectedAdministradora.PESSOA);
         isFormEmpty = false;
+        hasAdministradora = true;
       } else if (administradoraInputValue) {
         parametroConsultaObj.administradora_nome = administradoraInputValue.toUpperCase();
         isFormEmpty = false;
+        hasAdministradora = true;
+      }
+
+      if (hasCertificadoOrEndereco && !hasAdministradora) {
+        setError(
+          "Para pesquisar por Certificado ou Endereço, o campo Administradora também é obrigatório."
+        );
+        setLoading(false);
+        return;
       }
 
       if (isFormEmpty) {
@@ -265,16 +282,27 @@ const ConsultaSegurado = () => {
 
     try {
       const response = await ConsultaService.consultarSegurados(payload);
-      setResultado(response.resultado_api);
+      const data = response?.resultado_api;
+
+      if (!Array.isArray(data) || data.length === 0) {
+        setResultado([]); 
+        setError("Nenhum resultado encontrado para os parâmetros informados.");
+        setTotalPages(1);
+        setCurrentPage(1);
+        return;
+      }
+
+      setResultado(data);
       if (response.total_pages) {
         setTotalPages(response.total_pages);
         setCurrentPage(response.current_page || page);
-      } else if (response.resultado_api && response.resultado_api.length > 0) {
+      } else if (data.length > 0) {
         setTotalPages(page + 1);
       } else {
         setTotalPages(page);
       }
     } catch (err) {
+
       let mensagem =
         err.response?.data?.detail ||
         err.response?.data?.message ||
@@ -327,16 +355,6 @@ const ConsultaSegurado = () => {
     [showSuggestions, administradoraSuggestions, activeIndex, handleSuggestionClick, handleSubmit]
   );
 
-  const handlePageChange = (newPage) => {
-    if (totalPages > 1 && newPage > 0 && newPage <= totalPages) {
-      performConsulta(newPage);
-    } else if (totalPages === 1 && newPage > currentPage && resultado && resultado.length === pageSize) {
-      performConsulta(newPage);
-    } else if (newPage < currentPage && newPage > 0) {
-      performConsulta(newPage);
-    }
-  };
-
   function formatarDataBR(data) {
     if (!data || typeof data !== "string") return data;
     if (/^\d{2}\/\d{2}\/\d{4}$/.test(data)) return data;
@@ -360,6 +378,8 @@ const ConsultaSegurado = () => {
 
   function traduzirStatus(status) {
     switch (status) {
+      case "N":
+        return "Novo";
       case "R":
         return "Renovado";
       case "C":
@@ -382,10 +402,8 @@ const ConsultaSegurado = () => {
     return numero.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   }
 
-  function SeguradoItem({ segurado, idx }) {
-    const uniqueId = segurado.MATRICULA || idx;
+  function SeguradoItem({ segurado, uniqueId, expandedIndex, setExpandedIndex }) {
     const isExpanded = expandedIndex === uniqueId;
-
     const ignoreKeys = [
       "NOME_SEGURADO",
       "NOME",
@@ -400,6 +418,17 @@ const ConsultaSegurado = () => {
     const dateKeys = ["NASCIMENTO", "INICIO_VIG", "FINAL_VIG", "DT_INCLUSAO", "DT_CANCEL"];
 
     const camposMoeda = ["PREMIO", "PREMIO_LIQ", "INC_PREDIO", "INC_CONTEUDO", "ALUGUEL"];
+    const nomeApolice = resolveNomeApoliceFromRecord(segurado);
+
+    const policyKeysToHide = [
+      "APOLICE",
+      "APÓLICE",
+      "APOLICE_NUM",
+      "APOLICE_ID",
+      "NUM_APOLICE",
+      "NUMERO_APOLICE",
+      "APOLICECOD",
+    ];
 
     return (
       <li className={`item-segurado${isExpanded ? " expanded" : ""}`}>
@@ -435,14 +464,22 @@ const ConsultaSegurado = () => {
                   {segurado.ADMINISTRADORA_NOME || segurado.ADMINISTRADORA}
                 </li>
               )}
+
               {(segurado.STATUS || segurado.STATUS_SEG) && (
                 <li>
                   <strong>Status:</strong>{" "}
                   {traduzirStatus(segurado.STATUS_SEG || segurado.STATUS)}
                 </li>
               )}
+
+              {nomeApolice && (
+                <li>
+                  <strong>Apólice :</strong> {nomeApolice}
+                </li>
+              )}
+
               {Object.entries(segurado).map(([chave, valor]) => {
-                if (ignoreKeys.includes(chave)) {
+                if (ignoreKeys.includes(chave) || policyKeysToHide.includes(chave)) {
                   return null;
                 }
                 const isMoeda = camposMoeda.includes(chave);
@@ -452,14 +489,15 @@ const ConsultaSegurado = () => {
                     {dateKeys.includes(chave)
                       ? formatarDataBR(valor)
                       : isMoeda
-                      ? formatarMoedaBR(valor)
-                      : valor || <i>não informado</i>}
+                        ? formatarMoedaBR(valor)
+                        : valor || <i>não informado</i>}
                   </li>
                 );
               })}
             </ul>
           </div>
         )}
+
       </li>
     );
   }
@@ -534,17 +572,6 @@ const ConsultaSegurado = () => {
               value={formData.nome}
               onChange={handleFormChange}
               placeholder="Digite o nome"
-              disabled={loading}
-            />
-
-            <label htmlFor="posto">Posto</label>
-            <input
-              type="text"
-              name="posto"
-              id="posto"
-              value={formData.posto}
-              onChange={handleFormChange}
-              placeholder="Digite o posto"
               disabled={loading}
             />
 
@@ -625,7 +652,6 @@ const ConsultaSegurado = () => {
               value={formData.endereco}
               onChange={handleFormChange}
               placeholder="Digite o endereço"
-              disabled={loading}
             />
 
             <label htmlFor="certificado">Certificado</label>
@@ -636,18 +662,6 @@ const ConsultaSegurado = () => {
               value={formData.certificado}
               onChange={handleFormChange}
               placeholder="Digite o certificado"
-              disabled={loading}
-            />
-
-            <label htmlFor="fatura">Fatura</label>
-            <input
-              type="text"
-              name="fatura"
-              id="fatura"
-              value={formData.fatura}
-              onChange={handleFormChange}
-              placeholder="Digite o fatura"
-              disabled={loading}
             />
 
             <label htmlFor="administradora">Administradora</label>
@@ -705,21 +719,28 @@ const ConsultaSegurado = () => {
         <div className="card-resultado mt-4" ref={resultadoRef}>
           <h4>Resultado da Consulta</h4>
           <ul className="lista-segurados">
-            {resultado.map((seg, idx) => (
-              <SeguradoItem key={seg.MATRICULA || idx} segurado={seg} idx={idx} />
-            ))}
+            {resultado
+              .slice(-5)
+              .reverse()
+              .map((seg, idx) => (
+                <SeguradoItem
+                  key={idx}
+                  segurado={seg}
+                  uniqueId={idx}
+                  expandedIndex={expandedIndex}
+                  setExpandedIndex={setExpandedIndex}
+                />
+              ))}
           </ul>
+
+
+          {resultado.length > 5 && (
+            <div style={{ marginTop: 8, fontStyle: "italic", color: "#888", fontSize: 13 }}>
+              Exibindo os 5 resultados mais recentes de {resultado.length} encontrados.
+            </div>
+          )}
         </div>
       )}
-      <div className="pagination-controls">
-        <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage <= 1 || loading}>
-          Anterior
-        </button>
-        <span>Página {currentPage} de {totalPages}</span>
-        <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage >= totalPages || loading}>
-          Próxima
-        </button>
-      </div>
     </div>
   );
 };
