@@ -42,6 +42,9 @@ const ConsultaSegurado = () => {
   const [allAdministradoras, setAllAdministradoras] = useState([]);
   const [loadingAdms, setLoadingAdms] = useState(false);
 
+  const [selectedAdministradora, setSelectedAdministradora] = useState(null);
+  const [administradoraInputValue, setAdministradoraInputValue] = useState("");
+
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
   const [totalPages, setTotalPages] = useState(1);
@@ -55,7 +58,6 @@ const ConsultaSegurado = () => {
     cpf: "",
     nome: "",
     posto: "",
-    administradora: "",
     endereco: "",
     cnpj: "",
     certificado: "",
@@ -69,7 +71,6 @@ const ConsultaSegurado = () => {
       setLoadingAdms(true);
       try {
         const adms = await ConsultaService.getAdms();
-        console.log(adms);
         if (Array.isArray(adms)) {
           setAllAdministradoras(adms);
         }
@@ -97,6 +98,8 @@ const ConsultaSegurado = () => {
 
   const resetFormAndState = useCallback(() => {
     setFormData(initialFormData);
+    setSelectedAdministradora(null);
+    setAdministradoraInputValue("");
     setError(null);
     setResultado(null);
     setAdministradoraSuggestions([]);
@@ -129,10 +132,8 @@ const ConsultaSegurado = () => {
   const handleAdmFormChange = useCallback(
     (e) => {
       const { value } = e.target;
-      setFormData((prev) => ({
-        ...prev,
-        administradora: value,
-      }));
+      setAdministradoraInputValue(value);
+      setSelectedAdministradora(null);
       setActiveIndex(-1);
 
       if (debounceTimeout.current) {
@@ -156,14 +157,20 @@ const ConsultaSegurado = () => {
   );
 
   const handleSuggestionClick = useCallback((suggestion) => {
-    setFormData((prev) => ({
-      ...prev,
-      administradora: suggestion.NOME,
-    }));
+    setAdministradoraInputValue(suggestion.NOME);
+    setSelectedAdministradora(suggestion);
     setAdministradoraSuggestions([]);
     setShowSuggestions(false);
     setActiveIndex(-1);
   }, []);
+
+  // Nova função para formatar o ID da administradora
+  const formatAdministradoraId = (id) => {
+    if (id === null || id === undefined) return null;
+    const idString = String(id);
+    const paddedId = idString.padStart(10, '0');
+    return paddedId;
+  };
 
   const performConsulta = async (page = 1) => {
     setLoading(true);
@@ -172,20 +179,31 @@ const ConsultaSegurado = () => {
     setCurrentPage(page);
 
     let parametroConsultaObj = {};
+    let isFormEmpty = true;
 
     if (activeForm === "vida") {
-      parametroConsultaObj = {
-        ...(formData.cpf && { cpf_cnpj: formData.cpf.replace(/\D/g, "") }),
-        ...(formData.nome && { nome_segurado: formData.nome.toUpperCase() }),
-        ...(formData.posto && { posto: formData.posto.toUpperCase() }),
-        ...(formData.administradora && {
-          administradora_nome: formData.administradora.toUpperCase(),
-        }),
-      };
+      if (formData.cpf) {
+        parametroConsultaObj.cpf_cnpj = formData.cpf.replace(/\D/g, "");
+        isFormEmpty = false;
+      }
+      if (formData.nome) {
+        parametroConsultaObj.nome_segurado = formData.nome.toUpperCase();
+        isFormEmpty = false;
+      }
+      if (formData.posto) {
+        parametroConsultaObj.posto = formData.posto.toUpperCase();
+        isFormEmpty = false;
+      }
+      if (selectedAdministradora) {
+        // Usa a chave 'administradora' e formata o ID
+        parametroConsultaObj.administradora = formatAdministradoraId(selectedAdministradora.PESSOA);
+        isFormEmpty = false;
+      } else if (administradoraInputValue) {
+        parametroConsultaObj.administradora_nome = administradoraInputValue.toUpperCase();
+        isFormEmpty = false;
+      }
 
-      const vidaFields = ["cpf", "nome", "posto", "administradora"];
-      const isVidaFormEmpty = vidaFields.every((field) => !formData[field]);
-      if (isVidaFormEmpty) {
+      if (isFormEmpty) {
         setError(
           "Pelo menos um dos campos (CPF, Nome, Posto ou Administradora) é obrigatório para Consulta Vida."
         );
@@ -193,40 +211,45 @@ const ConsultaSegurado = () => {
         return;
       }
     } else if (activeForm === "imoveis") {
-      parametroConsultaObj = {
-        ...(formData.cpf && { cpf_cnpj: formData.cpf.replace(/\D/g, "") }),
-        ...(formData.cnpj && { cpf_cnpj: formData.cnpj.replace(/\D/g, "") }),
-        ...(formData.nome && { nome: formData.nome.toUpperCase() }),
-        ...(formData.endereco && { endereco: formData.endereco.toUpperCase() }),
-        ...(formData.certificado && { certificado: formData.certificado }),
-        ...(formData.administradora && {
-          administradora_nome: formData.administradora.toUpperCase(),
-        }),
-        ...(formData.fatura && { fatura: formData.fatura.replace(/\D/g, "") }),
-      };
+      if (formData.cpf) {
+        parametroConsultaObj.cpf_cnpj = formData.cpf.replace(/\D/g, "");
+        isFormEmpty = false;
+      }
+      if (formData.cnpj) {
+        parametroConsultaObj.cpf_cnpj = formData.cnpj.replace(/\D/g, "");
+        isFormEmpty = false;
+      }
+      if (formData.nome) {
+        parametroConsultaObj.nome = formData.nome.toUpperCase();
+        isFormEmpty = false;
+      }
+      if (formData.endereco) {
+        parametroConsultaObj.endereco = formData.endereco.toUpperCase();
+        isFormEmpty = false;
+      }
+      if (formData.certificado) {
+        parametroConsultaObj.certificado = formData.certificado;
+        isFormEmpty = false;
+      }
+      if (formData.fatura) {
+        parametroConsultaObj.fatura = formData.fatura.replace(/\D/g, "");
+        isFormEmpty = false;
+      }
+      if (selectedAdministradora) {
+        // Usa a chave 'administradora' e formata o ID
+        parametroConsultaObj.administradora = formatAdministradoraId(selectedAdministradora.PESSOA);
+        isFormEmpty = false;
+      } else if (administradoraInputValue) {
+        parametroConsultaObj.administradora_nome = administradoraInputValue.toUpperCase();
+        isFormEmpty = false;
+      }
 
-      const imoveisFields = [
-        "cpf",
-        "cnpj",
-        "nome",
-        "endereco",
-        "certificado",
-        "administradora",
-        "fatura",
-      ];
-      const isImoveisFormEmpty = imoveisFields.every((field) => !formData[field]);
-      if (isImoveisFormEmpty) {
+      if (isFormEmpty) {
         setError(
           "Pelo menos um dos campos (CPF, CNPJ, Nome, Endereço, Certificado, fatura ou Administradora) é obrigatório para Consulta Imóveis."
         );
         setLoading(false);
         return;
-      }
-    }
-
-    for (const key in parametroConsultaObj) {
-      if (parametroConsultaObj[key] === null || parametroConsultaObj[key] === "") {
-        delete parametroConsultaObj[key];
       }
     }
 
@@ -243,7 +266,6 @@ const ConsultaSegurado = () => {
     try {
       const response = await ConsultaService.consultarSegurados(payload);
       setResultado(response.resultado_api);
-
       if (response.total_pages) {
         setTotalPages(response.total_pages);
         setCurrentPage(response.current_page || page);
@@ -291,7 +313,6 @@ const ConsultaSegurado = () => {
             e.preventDefault();
             handleSuggestionClick(administradoraSuggestions[activeIndex]);
           } else {
-            // AQUI O ERRO FOI CORRIGIDO, POIS handleSubmit JÁ FOI DECLARADA ANTES
             handleSubmit(e);
           }
           break;
@@ -303,7 +324,6 @@ const ConsultaSegurado = () => {
           break;
       }
     },
-    // Removendo handleSubmit das dependências pois é uma função constante.
     [showSuggestions, administradoraSuggestions, activeIndex, handleSuggestionClick, handleSubmit]
   );
 
@@ -319,15 +339,12 @@ const ConsultaSegurado = () => {
 
   function formatarDataBR(data) {
     if (!data || typeof data !== "string") return data;
-
     if (/^\d{2}\/\d{2}\/\d{4}$/.test(data)) return data;
-
     const match = data.match(/^(\d{4})[-\/](\d{2})[-\/](\d{2})/);
     if (match) {
       const [_, ano, mes, dia] = match;
       return `${dia}/${mes}/${ano}`;
     }
-
     if (/^\d{8}$/.test(data)) {
       return `${data.substr(6, 2)}/${data.substr(4, 2)}/${data.substr(0, 4)}`;
     }
@@ -543,12 +560,12 @@ const ConsultaSegurado = () => {
                 type="text"
                 name="administradora"
                 id="administradora"
-                value={formData.administradora}
+                value={administradoraInputValue}
                 onChange={handleAdmFormChange}
                 onKeyDown={handleKeyDown}
                 placeholder={loadingAdms ? "Carregando administradoras..." : "Digite a administradora"}
                 disabled={loading || loadingAdms}
-                onFocus={() => formData.administradora.length > 0 && setShowSuggestions(true)}
+                onFocus={() => administradoraInputValue.length > 0 && setShowSuggestions(true)}
                 autoComplete="off"
                 aria-autocomplete="list"
                 aria-controls="administradora-suggestions"
@@ -645,12 +662,12 @@ const ConsultaSegurado = () => {
                 type="text"
                 name="administradora"
                 id="administradora"
-                value={formData.administradora}
+                value={administradoraInputValue}
                 onChange={handleAdmFormChange}
                 onKeyDown={handleKeyDown}
                 placeholder={loadingAdms ? "Carregando administradoras..." : "Digite a administradora"}
                 disabled={loading || loadingAdms}
-                onFocus={() => formData.administradora.length > 0 && setShowSuggestions(true)}
+                onFocus={() => administradoraInputValue.length > 0 && setShowSuggestions(true)}
                 autoComplete="off"
                 aria-autocomplete="list"
                 aria-controls="administradora-suggestions"
@@ -694,6 +711,15 @@ const ConsultaSegurado = () => {
           </ul>
         </div>
       )}
+      <div className="pagination-controls">
+        <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage <= 1 || loading}>
+          Anterior
+        </button>
+        <span>Página {currentPage} de {totalPages}</span>
+        <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage >= totalPages || loading}>
+          Próxima
+        </button>
+      </div>
     </div>
   );
 };
