@@ -9,12 +9,12 @@ function formatDateBR(iso) {
 }
 
 const EMPTY_FORM = {
-  empresa: "", 
+  empresa: "",
   data: "",
-  hora: "", // Campo 'hora' adicionado
+  hora: "",
   endereco: "",
   contato: "",
-  observacao: "", // Campo 'observacao' adicionado
+  observacao: "",
   status: "agendado",
 };
 
@@ -29,12 +29,16 @@ export default function AgendaComercial() {
   const [editId, setEditId] = useState(null);
   const isEditing = editId !== null;
 
+  // Novo: modal e controle para cancelar visita
+  const [cancelarModal, setCancelarModal] = useState({ aberto: false, visita: null });
+  const [motivoCancelamento, setMotivoCancelamento] = useState("");
+  const [erroCancelamento, setErroCancelamento] = useState("");
+
   async function fetchVisitas(f = filters) {
     try {
       setLoading(true);
       setErro("");
       const response = await AgendaComercialService.getVisitas();
-      console.log(response)
       const visitasDaAPI = response.results;
 
       let visitasFiltradas = Array.isArray(visitasDaAPI) ? visitasDaAPI : [];
@@ -81,12 +85,11 @@ export default function AgendaComercial() {
   function openEdit(v) {
     setEditId(v.id);
     setForm({
-      empresa: v.empresa || "", 
+      empresa: v.empresa || "",
       data: v.data || "",
-      hora: v.hora || "", // Adicionado
-      observacao: v.obs || "", // Adicionado
+      hora: v.hora || "",
+      observacao: v.obs || "",
       status: v.status || "agendado",
-      // Outros campos podem ser mantidos se o backend for expandido
     });
     setModalOpen(true);
   }
@@ -108,8 +111,8 @@ export default function AgendaComercial() {
       const payload = {
         empresa: form.empresa,
         data: form.data,
-        hora: form.hora, // Adicionado
-        obs: form.observacao, // Adicionado
+        hora: form.hora,
+        obs: form.observacao,
         status: form.status,
       };
 
@@ -120,7 +123,7 @@ export default function AgendaComercial() {
       }
       closeModal();
       fetchVisitas();
-    } catch(err) {
+    } catch (err) {
       console.error("Erro ao salvar:", err);
       setErro("Não foi possível salvar. Tente novamente.");
     }
@@ -132,14 +135,34 @@ export default function AgendaComercial() {
     fetchVisitas();
   }
 
-  async function removeVisita(id) {
-    if (!window.confirm("Confirmar exclusão da visita?")) return;
-    if (AgendaComercialService.deleteVisita) {
-      await AgendaComercialService.deleteVisita(id);
-    } else {
-      alert("Função deleteVisita não implementada no backend!");
+  function openCancelarModal(visita) {
+    setCancelarModal({ aberto: true, visita });
+    setMotivoCancelamento("");
+    setErroCancelamento("");
+  }
+  function closeCancelarModal() {
+    setCancelarModal({ aberto: false, visita: null });
+    setMotivoCancelamento("");
+    setErroCancelamento("");
+  }
+  async function handleCancelarVisita() {
+    if (!motivoCancelamento.trim()) {
+      setErroCancelamento("Motivo obrigatório.");
+      return;
     }
-    fetchVisitas();
+    try {
+      setErroCancelamento("");
+      // Ajuste o payload conforme seu backend. Aqui mandamos o motivo junto.
+      await AgendaComercialService.updateVisitaStatus(
+        cancelarModal.visita.id,
+        "cancelada",
+        { motivo_cancelamento: motivoCancelamento }
+      );
+      closeCancelarModal();
+      fetchVisitas();
+    } catch (err) {
+      setErroCancelamento("Erro ao cancelar a visita.");
+    }
   }
 
   return (
@@ -167,6 +190,7 @@ export default function AgendaComercial() {
           <option value="all">Todos</option>
           <option value="agendado">Agendado</option>
           <option value="realizada">Realizada</option>
+          <option value="cancelada">Cancelada</option>
         </select>
         <button className="btn-light" onClick={() => setFilters({ text: "", date: "", status: "all" })}>
           Limpar
@@ -186,24 +210,38 @@ export default function AgendaComercial() {
                 {items.map(v => (
                   <article key={v.id} className={`card ${v.status}`}>
                     <div className="card-head">
-                      <span className="hora">{v.hora}</span> {/* Exibe a hora */}
+                      <span className="hora">{v.hora}</span>
                       <span className={`status ${v.status}`}>
-                        {v.status === "agendado" ? "Agendado" : "Realizada"}
+                        {v.status === "agendado"
+                          ? "Agendado"
+                          : v.status === "realizada"
+                            ? "Realizada"
+                            : v.status === "cancelada"
+                              ? "Cancelada"
+                              : v.status}
                       </span>
                     </div>
                     <div className="card-body">
                       <div className="linha"><strong>Cliente/Empresa:</strong> {v.empresa}</div>
-                      <div className="linha"><strong>Responsável:</strong> {v.responsavel.nome_completo}</div>
-                      {v.obs && <div className="obs">{v.obs}</div>} {/* Exibe a observação */}
+                      <div className="linha"><strong>Responsável:</strong> {v.responsavel?.nome_completo || ""}</div>
+                      {v.obs && <div className="obs">{v.obs}</div>}
+                      {v.status === "cancelada" && v.motivo_cancelamento && (
+                        <div className="obs-cancelada">
+                          <strong>Motivo do cancelamento:</strong> {v.motivo_cancelamento}
+                        </div>
+                      )}
                     </div>
                     <div className="card-actions">
-                      <button className="btn-ghost" onClick={() => toggleStatus(v)}>
-                        {v.status === "agendado" ? "Marcar como realizada" : "Voltar para agendada"}
-                      </button>
+                      
                       <div className="spacer" />
                       <button className="btn-light" onClick={() => openEdit(v)}>Editar</button>
-                      <button className="btn-danger" onClick={() => removeVisita(v.id)}>Excluir</button>
+                      {v.status === "agendado" && (
+                        <button className="btn-danger" onClick={() => openCancelarModal(v)}>
+                          Cancelar
+                        </button>
+                      )}
                     </div>
+
                   </article>
                 ))}
               </div>
@@ -211,6 +249,7 @@ export default function AgendaComercial() {
           ))}
         </div>
       )}
+
       {modalOpen && (
         <div
           className="modal-overlay"
@@ -290,6 +329,35 @@ export default function AgendaComercial() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {cancelarModal.aberto && (
+        <div className="modal-overlay" onClick={closeCancelarModal}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Cancelar visita</h3>
+              <button className="icon-btn" aria-label="Fechar" onClick={closeCancelarModal}>×</button>
+            </div>
+            <div className="modal-body">
+              <p>Informe o motivo do cancelamento:</p>
+              <textarea
+                rows={4}
+                style={{ width: "100%" }}
+                value={motivoCancelamento}
+                onChange={e => setMotivoCancelamento(e.target.value)}
+                placeholder="Motivo do cancelamento (obrigatório)"
+              />
+              {erroCancelamento && <div className="alert error">{erroCancelamento}</div>}
+            </div>
+            <div className="modal-actions">
+              <button className="btn-light" onClick={closeCancelarModal}>Voltar</button>
+              <button
+                className="btn-danger"
+                onClick={handleCancelarVisita}
+              >Confirmar cancelamento</button>
+            </div>
           </div>
         </div>
       )}
