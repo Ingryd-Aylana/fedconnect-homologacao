@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import * as XLSX from "xlsx";
 import "../styles/Consulta.css";
@@ -13,21 +12,17 @@ function preencherZeros(valor, tamanho) {
 
 function formatarDataBrasileira(dataStr) {
   if (!dataStr) return "";
-
-  if (dataStr.length > 10 && dataStr[4] === '-') {
-    const [ano, mes, dia] = dataStr.split('T')[0].split('-');
+  if (dataStr.length > 10 && dataStr[4] === "-") {
+    const [ano, mes, dia] = dataStr.split("T")[0].split("-");
     return `${dia}/${mes}/${ano}`;
   }
-
   const match = dataStr.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/);
   if (match) {
     const [, ano, mes, dia] = match;
     return `${String(dia).padStart(2, "0")}/${String(mes).padStart(2, "0")}/${ano}`;
   }
-
   return dataStr;
 }
-
 
 function isValidCNPJ(raw) {
   const cnpj = String(raw).replace(/\D/g, "");
@@ -75,7 +70,6 @@ function getFriendlyError(err, context = {}) {
   if (status === 429) return "Muitas consultas em sequência. Aguarde e tente novamente.";
   if (status === 401 || status === 403) return "Acesso não autorizado. Verifique suas credenciais.";
   if (status >= 500) return "Serviço do provedor indisponível no momento. Tente novamente em instantes.";
-
   return serverMsg || `Erro inesperado (${status}). Tente novamente.`;
 }
 
@@ -87,8 +81,25 @@ function baixarXLSX(linhas) {
   XLSX.writeFile(wb, "resultado-consulta-cnpjs.xlsx");
 }
 
-const ConsultaCNPJ = () => {
+// 🆕 util para montar o endereço a ser enviado ao Maps
+function montarEnderecoParaMaps({ cep, tipo, logradouro, numero, cidade, uf, complemento }) {
+  const partes = [];
+  if (cep) partes.push(String(cep));
+  const rua =
+    (tipo && logradouro ? `${tipo} ${logradouro}` : tipo || logradouro) || "";
+  const ruaNumero = rua ? `${rua}${numero ? `, ${numero}` : ""}` : "";
+  if (ruaNumero) partes.push(ruaNumero);
+  if (complemento) partes.push(String(complemento));
+  if (cidade) partes.push(String(cidade));
+  if (uf) partes.push(String(uf));
+  // remove espaços duplicados + filtra vazios
+  return partes
+    .map((p) => p.replace(/\s+/g, " ").trim())
+    .filter(Boolean)
+    .join(" ");
+}
 
+const ConsultaCNPJ = () => {
   const [copiado, setCopiado] = useState({});
   const [showPopup, setShowPopup] = useState(false);
   function copiarParaClipboard(texto, campo) {
@@ -101,6 +112,7 @@ const ConsultaCNPJ = () => {
       setShowPopup(false);
     }, 1000);
   }
+
   const [cnpj, setCnpj] = useState("");
   const [activeForm, setActiveForm] = useState("");
   const [loading, setLoading] = useState(false);
@@ -114,7 +126,6 @@ const ConsultaCNPJ = () => {
     email: "",
     telefone: "",
   });
-
 
   const resultadoRef = useRef(null);
   const [massConsultaMessage, setMassConsultaMessage] = useState("");
@@ -146,9 +157,7 @@ const ConsultaCNPJ = () => {
       TradeName: flat.nome_fantasia ?? null,
       TaxIdNumber: flat.cnpj ?? null,
       HeadquarterState: flat.uf ?? null,
-      Activities: flat.cnae_fiscal_descricao
-        ? [{ Activity: flat.cnae_fiscal_descricao }]
-        : [],
+      Activities: flat.cnae_fiscal_descricao ? [{ Activity: flat.cnae_fiscal_descricao }] : [],
       LegalNature: flat.natureza_juridica ? { Activity: flat.natureza_juridica } : null,
       TaxIdStatus: flat.descricao_situacao_cadastral ?? null,
       FoundedDate: flat.data_inicio_atividade ?? null,
@@ -157,7 +166,7 @@ const ConsultaCNPJ = () => {
     };
   };
 
-  const getRoot = (res) => (res?.resultado_api ?? res);
+  const getRoot = (res) => res?.resultado_api ?? res;
 
   const getResultList = (res) => {
     if (!res) return [];
@@ -221,6 +230,7 @@ const ConsultaCNPJ = () => {
       [name]: value,
     }));
   };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
@@ -280,7 +290,8 @@ const ConsultaCNPJ = () => {
 
     try {
       const response = await ConsultaService.realizarConsulta(payload);
-      const apiData = response?.data ?? console.log("Retorno da API ConsultaService.realizarConsulta:", apiData);
+      // 🆕 antes: const apiData = response?.data ?? console.log(...)
+      const apiData = response?.data ?? response; // mantém compatível com ambos formatos
       setResultado(apiData);
     } catch (err) {
       const friendly = getFriendlyError(err, payload);
@@ -316,7 +327,6 @@ const ConsultaCNPJ = () => {
           .map((row) => preencherZeros(row.CNPJ, 14))
           .filter((cnpj) => cnpj.length === 14 && isValidCNPJ(cnpj));
 
-
         if (!cnpjsParaConsulta.length)
           throw new Error("Nenhum CNPJ válido encontrado na planilha.");
 
@@ -331,8 +341,11 @@ const ConsultaCNPJ = () => {
               tipo_consulta: "cnpj",
               parametro_consulta: cnpjsParaConsulta[i],
             });
-            const data = resp.resultado_api || resp.resultado_api;
-
+            const data =
+              resp.resultado_api ||
+              resp?.data?.resultado_api ||
+              resp?.data ||
+              resp;
 
             resultados.push({
               CNPJ: cnpjsParaConsulta[i],
@@ -346,19 +359,16 @@ const ConsultaCNPJ = () => {
               Numero: data.numero || "",
               Complemento: data.complemento || "",
               Telefone: data.ddd_telefone_1 || data.ddd_telefone_2 || "",
-              'Situação Cadastral': data.descricao_situacao_cadastral || "",
-              'Data Início Atividade': formatarDataBrasileira(data.data_inicio_atividade),
-              'Matriz/Filial': data.descricao_identificador_matriz_filial || "",
-              'Atividades Secundárias': (
-                Array.isArray(data.cnaes_secundarios)
-                  ? data.cnaes_secundarios
+              "Situação Cadastral": data.descricao_situacao_cadastral || "",
+              "Data Início Atividade": formatarDataBrasileira(data.data_inicio_atividade),
+              "Matriz/Filial": data.descricao_identificador_matriz_filial || "",
+              "Atividades Secundárias": Array.isArray(data.cnaes_secundarios)
+                ? data.cnaes_secundarios
                     .map((c) => c.descricao)
                     .filter((d) => !!d && d.trim() !== "")
                     .join(", ")
-                  : ""
-              ),
+                : "",
             });
-
           } catch (e) {
             resultados.push({
               CNPJ: cnpjsParaConsulta[i],
@@ -406,7 +416,9 @@ const ConsultaCNPJ = () => {
       setMassConsultaMessage("Download do modelo concluído.");
     } catch (err) {
       const errorMessage =
-        err.response?.data?.message || err.message || "Erro na comunicação com o servidor para baixar o modelo.";
+        err.response?.data?.message ||
+        err.message ||
+        "Erro na comunicação com o servidor para baixar o modelo.";
       setMassConsultaMessage(`Erro ao baixar modelo: ${errorMessage}`);
     } finally {
       setLoading(false);
@@ -435,11 +447,10 @@ const ConsultaCNPJ = () => {
         <FiCheck style={{ marginRight: 8 }} />
         Copiado para área de transferência!
       </div>
-    )
+    );
   }
 
   return (
-
     <div className="consulta-container03">
       <h1 className="consultas-title">
         <i className="bi-clipboard-data"></i> Consultas Disponíveis
@@ -451,14 +462,7 @@ const ConsultaCNPJ = () => {
           onClick={() => resetStateOnTab("cnpj")}
         >
           <div className="icon-container">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="25"
-              height="25"
-              fill="white"
-              className="bi bi-building"
-              viewBox="0 0 16 16"
-            >
+            <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="white" className="bi bi-building" viewBox="0 0 16 16">
               <path d="M4 2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zm3 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zm3.5-.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zM4 5.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zM7.5 5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm2.5.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zM4.5 8a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm2.5.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zm3.5-.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5z" />
               <path d="M2 1a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1zm11 0H3v14h3v-2.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 .5.5V15h3z" />
             </svg>
@@ -566,12 +570,14 @@ const ConsultaCNPJ = () => {
           )}
 
           {!massProcessing && massConsultaMessage && (
-            <div className={
-              massConsultaMessage.toLowerCase().includes("erro") ||
+            <div
+              className={
+                massConsultaMessage.toLowerCase().includes("erro") ||
                 massConsultaMessage.toLowerCase().includes("falha")
-                ? "error-message"
-                : "success-message"
-            }>
+                  ? "error-message"
+                  : "success-message"
+              }
+            >
               {massConsultaMessage}
             </div>
           )}
@@ -593,8 +599,12 @@ const ConsultaCNPJ = () => {
           <label>Razão Social:</label>
           <div className="input-copy-group">
             <input type="text" value={cnpjData.razao_social || "N/A"} disabled />
-            <button type="button" className="copy-btn" title="Copiar Razão Social"
-              onClick={() => copiarParaClipboard(cnpjData.razao_social || "N/A", "razao_social")}>
+            <button
+              type="button"
+              className="copy-btn"
+              title="Copiar Razão Social"
+              onClick={() => copiarParaClipboard(cnpjData.razao_social || "N/A", "razao_social")}
+            >
               {copiado.razao_social ? <FiCheck color="#20bf55" /> : <FiCopy />}
             </button>
           </div>
@@ -602,8 +612,12 @@ const ConsultaCNPJ = () => {
           <label>CNPJ:</label>
           <div className="input-copy-group">
             <input type="text" value={cnpjData.cnpj || "N/A"} disabled />
-            <button type="button" className="copy-btn" title="Copiar CNPJ"
-              onClick={() => copiarParaClipboard(cnpjData.cnpj || "N/A", "cnpj")}>
+            <button
+              type="button"
+              className="copy-btn"
+              title="Copiar CNPJ"
+              onClick={() => copiarParaClipboard(cnpjData.cnpj || "N/A", "cnpj")}
+            >
               {copiado.cnpj ? <FiCheck color="#20bf55" /> : <FiCopy />}
             </button>
           </div>
@@ -611,23 +625,28 @@ const ConsultaCNPJ = () => {
           <label>Atividade Principal:</label>
           <div className="input-copy-group">
             <input type="text" value={cnpjData.cnae_fiscal_descricao || "N/A"} disabled />
-            <button type="button" className="copy-btn" title="Copiar Atividade Principal"
-              onClick={() => copiarParaClipboard(cnpjData.cnae_fiscal_descricao || "N/A", "atividade_principal")}>
+            <button
+              type="button"
+              className="copy-btn"
+              title="Copiar Atividade Principal"
+              onClick={() =>
+                copiarParaClipboard(cnpjData.cnae_fiscal_descricao || "N/A", "atividade_principal")
+              }
+            >
               {copiado.atividade_principal ? <FiCheck color="#20bf55" /> : <FiCopy />}
             </button>
           </div>
 
           <label style={{ marginBottom: 0 }}>Atividades Secundárias:</label>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
             <ul style={{ margin: 0, paddingLeft: 24 }}>
-              {(Array.isArray(cnpjData.cnaes_secundarios) && cnpjData.cnaes_secundarios.length > 0)
-                ? cnpjData.cnaes_secundarios
-                  .filter(c => !!c.descricao && c.descricao.trim() !== "")
-                  .map((c, idx) => (
-                    <li key={idx} style={{ marginBottom: 2 }}>{c.descricao}</li>
-                  ))
-                : <li>Nenhuma</li>
-              }
+              {Array.isArray(cnpjData.cnaes_secundarios) && cnpjData.cnaes_secundarios.length > 0 ? (
+                cnpjData.cnaes_secundarios
+                  .filter((c) => !!c.descricao && c.descricao.trim() !== "")
+                  .map((c, idx) => <li key={idx} style={{ marginBottom: 2 }}>{c.descricao}</li>)
+              ) : (
+                <li>Nenhuma</li>
+              )}
             </ul>
             <button
               type="button"
@@ -638,9 +657,9 @@ const ConsultaCNPJ = () => {
                 copiarParaClipboard(
                   Array.isArray(cnpjData.cnaes_secundarios)
                     ? cnpjData.cnaes_secundarios
-                      .filter(c => !!c.descricao && c.descricao.trim() !== "")
-                      .map(c => c.descricao)
-                      .join('\n') || "Nenhuma"
+                        .filter((c) => !!c.descricao && c.descricao.trim() !== "")
+                        .map((c) => c.descricao)
+                        .join("\n") || "Nenhuma"
                     : "Nenhuma",
                   "atividades_secundarias"
                 )
@@ -650,12 +669,17 @@ const ConsultaCNPJ = () => {
             </button>
           </div>
 
-
           <label>Matriz / Filial:</label>
           <div className="input-copy-group">
             <input type="text" value={cnpjData.descricao_identificador_matriz_filial || "N/A"} disabled />
-            <button type="button" className="copy-btn" title="Copiar Matriz/Filial"
-              onClick={() => copiarParaClipboard(cnpjData.descricao_identificador_matriz_filial || "N/A", "matriz_filial")}>
+            <button
+              type="button"
+              className="copy-btn"
+              title="Copiar Matriz/Filial"
+              onClick={() =>
+                copiarParaClipboard(cnpjData.descricao_identificador_matriz_filial || "N/A", "matriz_filial")
+              }
+            >
               {copiado.matriz_filial ? <FiCheck color="#20bf55" /> : <FiCopy />}
             </button>
           </div>
@@ -663,8 +687,14 @@ const ConsultaCNPJ = () => {
           <label>Telefone:</label>
           <div className="input-copy-group">
             <input type="text" value={cnpjData.ddd_telefone_1 || cnpjData.ddd_telefone_2 || "N/A"} disabled />
-            <button type="button" className="copy-btn" title="Copiar Telefone"
-              onClick={() => copiarParaClipboard(cnpjData.ddd_telefone_1 || cnpjData.ddd_telefone_2 || "N/A", "telefone")}>
+            <button
+              type="button"
+              className="copy-btn"
+              title="Copiar Telefone"
+              onClick={() =>
+                copiarParaClipboard(cnpjData.ddd_telefone_1 || cnpjData.ddd_telefone_2 || "N/A", "telefone")
+              }
+            >
               {copiado.telefone ? <FiCheck color="#20bf55" /> : <FiCopy />}
             </button>
           </div>
@@ -672,8 +702,14 @@ const ConsultaCNPJ = () => {
           <label>Situação Cadastral:</label>
           <div className="input-copy-group">
             <input type="text" value={cnpjData.descricao_situacao_cadastral || "N/A"} disabled />
-            <button type="button" className="copy-btn" title="Copiar Situação Cadastral"
-              onClick={() => copiarParaClipboard(cnpjData.descricao_situacao_cadastral || "N/A", "situacao_cadastral")}>
+            <button
+              type="button"
+              className="copy-btn"
+              title="Copiar Situação Cadastral"
+              onClick={() =>
+                copiarParaClipboard(cnpjData.descricao_situacao_cadastral || "N/A", "situacao_cadastral")
+              }
+            >
               {copiado.situacao_cadastral ? <FiCheck color="#20bf55" /> : <FiCopy />}
             </button>
           </div>
@@ -681,8 +717,14 @@ const ConsultaCNPJ = () => {
           <label>Data de Início de Atividade:</label>
           <div className="input-copy-group">
             <input type="text" value={formatarDataBrasileira(cnpjData.data_inicio_atividade) || "N/A"} disabled />
-            <button type="button" className="copy-btn" title="Copiar Data de Início"
-              onClick={() => copiarParaClipboard(formatarDataBrasileira(cnpjData.data_inicio_atividade) || "N/A", "data_inicio")}>
+            <button
+              type="button"
+              className="copy-btn"
+              title="Copiar Data de Início"
+              onClick={() =>
+                copiarParaClipboard(formatarDataBrasileira(cnpjData.data_inicio_atividade) || "N/A", "data_inicio")
+              }
+            >
               {copiado.data_inicio ? <FiCheck color="#20bf55" /> : <FiCopy />}
             </button>
           </div>
@@ -690,8 +732,7 @@ const ConsultaCNPJ = () => {
           <label>UF (Sede):</label>
           <div className="input-copy-group">
             <input type="text" value={cnpjData.uf || "N/A"} disabled />
-            <button type="button" className="copy-btn" title="Copiar UF"
-              onClick={() => copiarParaClipboard(cnpjData.uf || "N/A", "uf")}>
+            <button type="button" className="copy-btn" title="Copiar UF" onClick={() => copiarParaClipboard(cnpjData.uf || "N/A", "uf")}>
               {copiado.uf ? <FiCheck color="#20bf55" /> : <FiCopy />}
             </button>
           </div>
@@ -699,8 +740,12 @@ const ConsultaCNPJ = () => {
           <label>Bairro:</label>
           <div className="input-copy-group">
             <input type="text" value={cnpjData.bairro || "Não informada"} disabled />
-            <button type="button" className="copy-btn" title="Copiar Bairro"
-              onClick={() => copiarParaClipboard(cnpjData.bairro || "Não informada", "bairro")}>
+            <button
+              type="button"
+              className="copy-btn"
+              title="Copiar Bairro"
+              onClick={() => copiarParaClipboard(cnpjData.bairro || "Não informada", "bairro")}
+            >
               {copiado.bairro ? <FiCheck color="#20bf55" /> : <FiCopy />}
             </button>
           </div>
@@ -708,8 +753,12 @@ const ConsultaCNPJ = () => {
           <label>CEP:</label>
           <div className="input-copy-group">
             <input type="text" value={cnpjData.cep || "Não informado"} disabled />
-            <button type="button" className="copy-btn" title="Copiar CEP"
-              onClick={() => copiarParaClipboard(cnpjData.cep || "Não informado", "cep")}>
+            <button
+              type="button"
+              className="copy-btn"
+              title="Copiar CEP"
+              onClick={() => copiarParaClipboard(cnpjData.cep || "Não informado", "cep")}
+            >
               {copiado.cep ? <FiCheck color="#20bf55" /> : <FiCopy />}
             </button>
           </div>
@@ -725,13 +774,19 @@ const ConsultaCNPJ = () => {
               }
               disabled
             />
-            <button type="button" className="copy-btn" title="Copiar Rua"
-              onClick={() => copiarParaClipboard(
-                cnpjData.descricao_tipo_de_logradouro && cnpjData.logradouro
-                  ? `${cnpjData.descricao_tipo_de_logradouro} ${cnpjData.logradouro}${cnpjData.numero ? `, ${cnpjData.numero}` : ""}`
-                  : cnpjData.descricao_tipo_de_logradouro || cnpjData.logradouro || "Não informada",
-                "rua"
-              )}>
+            <button
+              type="button"
+              className="copy-btn"
+              title="Copiar Rua"
+              onClick={() =>
+                copiarParaClipboard(
+                  cnpjData.descricao_tipo_de_logradouro && cnpjData.logradouro
+                    ? `${cnpjData.descricao_tipo_de_logradouro} ${cnpjData.logradouro}${cnpjData.numero ? `, ${cnpjData.numero}` : ""}`
+                    : cnpjData.descricao_tipo_de_logradouro || cnpjData.logradouro || "Não informada",
+                  "rua"
+                )
+              }
+            >
               {copiado.rua ? <FiCheck color="#20bf55" /> : <FiCopy />}
             </button>
           </div>
@@ -739,8 +794,12 @@ const ConsultaCNPJ = () => {
           <label>Complemento:</label>
           <div className="input-copy-group">
             <input type="text" value={cnpjData.complemento || "Não informada"} disabled />
-            <button type="button" className="copy-btn" title="Copiar Complemento"
-              onClick={() => copiarParaClipboard(cnpjData.complemento || "Não informada", "complemento")}>
+            <button
+              type="button"
+              className="copy-btn"
+              title="Copiar Complemento"
+              onClick={() => copiarParaClipboard(cnpjData.complemento || "Não informada", "complemento")}
+            >
               {copiado.complemento ? <FiCheck color="#20bf55" /> : <FiCopy />}
             </button>
           </div>
@@ -748,8 +807,12 @@ const ConsultaCNPJ = () => {
           <label>Município:</label>
           <div className="input-copy-group">
             <input type="text" value={cnpjData.municipio || "Não informada"} disabled />
-            <button type="button" className="copy-btn" title="Copiar Município"
-              onClick={() => copiarParaClipboard(cnpjData.municipio || "Não informada", "municipio")}>
+            <button
+              type="button"
+              className="copy-btn"
+              title="Copiar Município"
+              onClick={() => copiarParaClipboard(cnpjData.municipio || "Não informada", "municipio")}
+            >
               {copiado.municipio ? <FiCheck color="#20bf55" /> : <FiCopy />}
             </button>
           </div>
@@ -760,7 +823,15 @@ const ConsultaCNPJ = () => {
               className="maps-btn"
               style={{ marginTop: 12, marginBottom: 12 }}
               onClick={() => {
-                const endereco = `${cnpjData.cep} ${cnpjData.descricao_tipo_de_logradouro || ""} ${cnpjData.logradouro || ""}${cnpjData.numero ? `, ${cnpjData.numero}` : ""}`;
+                const endereco = montarEnderecoParaMaps({
+                  cep: cnpjData.cep,
+                  tipo: cnpjData.descricao_tipo_de_logradouro,
+                  logradouro: cnpjData.logradouro,
+                  numero: cnpjData.numero,
+                  cidade: cnpjData.municipio,
+                  uf: cnpjData.uf,
+                  complemento: cnpjData.complemento,
+                });
                 window.open(`https://www.google.com/maps/place/${encodeURIComponent(endereco)}`, "_blank");
               }}
             >
@@ -788,6 +859,21 @@ const ConsultaCNPJ = () => {
                 const BD = item.BasicData ?? item.basicData ?? flatToBasicData(item) ?? {};
                 const AD = BD.Address ?? {};
                 const CT = BD.Contact ?? {};
+
+                // 🆕 endereço pronto para maps
+                const enderecoMaps = montarEnderecoParaMaps({
+                  cep: AD?.ZipCode,
+                  tipo: AD?.StreetType,
+                  logradouro: AD?.Street,
+                  numero: AD?.Number,
+                  cidade: AD?.City,
+                  uf: AD?.State || BD?.HeadquarterState,
+                  complemento: AD?.Complement,
+                });
+                const podeAbrirMapa =
+                  enderecoMaps &&
+                  (AD?.ZipCode || AD?.Street || AD?.StreetType) &&
+                  (AD?.City || AD?.State || BD?.HeadquarterState);
 
                 return (
                   <React.Fragment key={idx}>
@@ -831,10 +917,11 @@ const ConsultaCNPJ = () => {
                             <p>
                               <strong>Endereço:</strong>{" "}
                               {AD?.StreetType || AD?.Street || AD?.Number || AD?.Complement
-                                ? `${AD?.StreetType ?? ""} ${AD?.Street ?? ""}${AD?.Number ? `, ${AD?.Number}` : ""
-                                  }${AD?.Complement ? ` - ${AD?.Complement}` : ""}`
-                                  .replace(/\s+/g, " ")
-                                  .trim()
+                                ? `${AD?.StreetType ?? ""} ${AD?.Street ?? ""}${AD?.Number ? `, ${AD?.Number}` : ""}${
+                                    AD?.Complement ? ` - ${AD?.Complement}` : ""
+                                  }`
+                                    .replace(/\s+/g, " ")
+                                    .trim()
                                 : "N/A"}
                             </p>
                             <p>
@@ -846,6 +933,29 @@ const ConsultaCNPJ = () => {
                             <p>
                               <strong>UF:</strong> {BD?.HeadquarterState || "Não localizado"}
                             </p>
+
+                            {/* 🆕 Botão Maps para CHAVES */}
+                            <div style={{ marginTop: 12 }}>
+                              <button
+                                type="button"
+                                className="maps-btn"
+                                disabled={!podeAbrirMapa}
+                                title={
+                                  podeAbrirMapa
+                                    ? "Abrir endereço no Google Maps"
+                                    : "Endereço insuficiente para abrir no mapa"
+                                }
+                                onClick={() => {
+                                  if (!podeAbrirMapa) return;
+                                  window.open(
+                                    `https://www.google.com/maps/place/${encodeURIComponent(enderecoMaps)}`,
+                                    "_blank"
+                                  );
+                                }}
+                              >
+                                Ver endereço no maps
+                              </button>
+                            </div>
                           </div>
                         </td>
                       </tr>
