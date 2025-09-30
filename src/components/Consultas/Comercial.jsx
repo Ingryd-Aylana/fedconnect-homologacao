@@ -360,13 +360,7 @@ const ConsultaComercial = () => {
           </button>
           {accordionOpen === "paineis" && (
             <div className="accordion-body">
-              <div
-                className="subcard-option"
-                onClick={() => navigate("/acompanhamento")}
-              >
-                <FaSearch size={23} className="subcard-icon" />
-                <span>Acompanhamento</span>
-              </div>
+             
               <div
                 className="subcard-option"
                 onClick={() => navigate("/agenda-comercial")}
