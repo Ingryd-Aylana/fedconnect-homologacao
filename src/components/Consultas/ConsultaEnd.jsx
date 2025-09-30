@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import * as XLSX from "xlsx";
 import "../styles/Consulta.css";
 import { ConsultaService } from "../../services/consultaService";
@@ -35,6 +35,70 @@ const ConsultaEnd = () => {
   });
   const [massConsultaMessage, setMassConsultaMessage] = useState("");
   const [selectedResultIndex, setSelectedResultIndex] = useState(null);
+
+  const resultadoRef = useRef(null);
+
+  // ===== Scroll control (com cancelamento robusto) =====
+  const scrollFlagRef = useRef(false);        // se devemos rolar no próximo resultado
+  const raf1Ref = useRef(null);               // id do 1º requestAnimationFrame
+  const raf2Ref = useRef(null);               // id do 2º requestAnimationFrame
+
+  function cancelPendingScroll() {
+    scrollFlagRef.current = false;
+    if (raf1Ref.current) {
+      cancelAnimationFrame(raf1Ref.current);
+      raf1Ref.current = null;
+    }
+    if (raf2Ref.current) {
+      cancelAnimationFrame(raf2Ref.current);
+      raf2Ref.current = null;
+    }
+  }
+
+  function scheduleScrollToResult() {
+    cancelPendingScroll(); // garante que não há duplicidade
+    scrollFlagRef.current = true;
+    raf1Ref.current = requestAnimationFrame(() => {
+      raf2Ref.current = requestAnimationFrame(() => {
+        if (!scrollFlagRef.current) return; // pode ter sido cancelado
+        const el = resultadoRef.current;
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          const vh = window.innerHeight || document.documentElement.clientHeight;
+          // Só rola se o topo do card estiver consideravelmente fora de vista
+          const precisaRolar = rect.top > vh * 0.25 || rect.top < 0;
+          if (precisaRolar) {
+            el.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        }
+        // desarma a flag após uso
+        scrollFlagRef.current = false;
+        raf1Ref.current = null;
+        raf2Ref.current = null;
+      });
+    });
+  }
+
+  // ===========================
+  // Helpers para abrir Google Maps (/search)
+  // ===========================
+  function buildMapsSearchUrl({ street, neighborhood, city, state, cep }) {
+    const parts = [
+      street && String(street).trim(),
+      neighborhood && String(neighborhood).trim(),
+      city && String(city).trim(),
+      state && String(state).trim(),
+      cep && String(cep).trim(),
+    ].filter(Boolean);
+
+    const query = parts.join(", ");
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+  }
+
+  function openInMaps(addressObj) {
+    const url = buildMapsSearchUrl(addressObj);
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
 
   const isValidCEP = (raw) => {
     const cep = String(raw || "").replace(/\D/g, "");
@@ -89,6 +153,14 @@ const ConsultaEnd = () => {
       formattedValue = value.toUpperCase().substring(0, 2);
     }
 
+    // Usuário começou a editar: cancele qualquer scroll pendente
+    cancelPendingScroll();
+
+    // Se já existe um resultado exibido, mantenha a viewport no topo do formulário
+    if (resultado) {
+      window.scrollTo({ top: 0, behavior: "auto" });
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: formattedValue,
@@ -102,6 +174,10 @@ const ConsultaEnd = () => {
     setResultado(null);
     setMassConsultaMessage("");
     setSelectedResultIndex(null);
+
+    // Ao iniciar uma nova consulta, garanta viewport no topo e nenhum scroll pendente
+    window.scrollTo({ top: 0, behavior: "auto" });
+    cancelPendingScroll();
 
     let payload = {};
     let isFormValid = true;
@@ -161,14 +237,10 @@ const ConsultaEnd = () => {
       const resp = await ConsultaService.realizarConsulta(payload);
       const response = resp?.data ?? resp;
 
-      if (
-        response?.mensagem === "Consulta realizada com sucesso." &&
-        response?.resultado_api
-      ) {
+      if (response?.resultado_api) {
         setResultado(response);
-
-      } else if (response?.resultado_api) {
-        setResultado(response);
+        // agenda um ÚNICO scroll suave até o card do resultado
+        scheduleScrollToResult();
       } else {
         setError(
           response?.mensagem ||
@@ -179,10 +251,7 @@ const ConsultaEnd = () => {
     } catch (err) {
       const friendly = getFriendlyError(err, payload);
       setError(friendly);
-      console.error(
-        "Erro na consulta de endereço individual:",
-        err?.response?.data || err
-      );
+      console.error("Erro na consulta de endereço individual:", err?.response?.data || err);
     } finally {
       setLoading(false);
       setHasQueried(true);
@@ -215,9 +284,7 @@ const ConsultaEnd = () => {
           CEP: String(row.CEP || "").replace(/\D/g, ""),
         }));
 
-        const cepsValidos = cepsParaConsulta.filter(
-          (item) => isValidCEP(item.CEP)
-        );
+        const cepsValidos = cepsParaConsulta.filter((item) => isValidCEP(item.CEP));
 
         if (cepsValidos.length === 0) {
           setMassConsultaMessage(
@@ -229,15 +296,10 @@ const ConsultaEnd = () => {
           return;
         }
 
-        const requestBody = {
-          ceps: cepsValidos,
-          origem: "planilha",
-        };
+        const requestBody = { ceps: cepsValidos, origem: "planilha" };
 
         setMassConsultaMessage("Enviando CEPs para processamento em massa...");
-        const blobResponse = await ConsultaService.processarPlanilhaCEP(
-          requestBody
-        );
+        const blobResponse = await ConsultaService.processarPlanilhaCEP(requestBody);
         const url = window.URL.createObjectURL(new Blob([blobResponse]));
         const link = document.createElement("a");
         link.href = url;
@@ -245,9 +307,7 @@ const ConsultaEnd = () => {
         document.body.appendChild(link);
         link.click();
         link.parentNode.removeChild(link);
-        setMassConsultaMessage(
-          "Processamento concluído! O download da planilha de resultados iniciou."
-        );
+        setMassConsultaMessage("Processamento concluído! O download da planilha de resultados iniciou.");
       } catch (err) {
         console.error("Erro na comunicação ou processamento do arquivo:", err);
         const friendly = getFriendlyError(err, { tipo_consulta: "massa_cep" });
@@ -290,6 +350,10 @@ const ConsultaEnd = () => {
   };
 
   const resetFormState = () => {
+    // Ao trocar de aba/limpar, cancele QUALQUER scroll pendente e jogue pro topo
+    cancelPendingScroll();
+    window.scrollTo({ top: 0, behavior: "auto" });
+
     setFormData({ cep: "", rua: "", bairro: "", cidade: "", uf: "" });
     setError(null);
     setResultado(null);
@@ -303,30 +367,6 @@ const ConsultaEnd = () => {
     const arr = resultado.resultado_api.resultados_viacep;
     return resultado.tipo_consulta === "cep_rua_cidade" && (!Array.isArray(arr) || arr.length === 0);
   }
-
-  const resultadoRef = useRef(null);
-
-  useEffect(() => {
-    if (
-      activeForm === "cep" &&
-      resultado?.resultado_api &&
-      (resultado?.historico_salvo?.tipo_consulta === "endereco" || resultado?.tipo_consulta === "endereco")
-    ) {
-      setTimeout(() => {
-        resultadoRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 200);
-    }
-
-    if (
-      activeForm === "chaves" &&
-      resultado?.resultado_api?.resultados_viacep &&
-      resultado.resultado_api.resultados_viacep.length > 0
-    ) {
-      setTimeout(() => {
-        resultadoRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 200);
-    }
-  }, [resultado, activeForm]);
 
   return (
     <div className="consulta-container03">
@@ -365,11 +405,7 @@ const ConsultaEnd = () => {
           }}
         >
           <div className="icon-container">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="white"
-              viewBox="0 0 16 16"
-            >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 16 16">
               <path d="M6.5 0A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0zm3 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5z" />
               <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1A2.5 2.5 0 0 1 9.5 5h-3A2.5 2.5 0 0 1 4 2.5zM10 8a1 1 0 1 1 2 0v5a1 1 0 1 1-2 0zm-6 4a1 1 0 1 1 2 0v1a1 1 0 1 1-2 0zm4-3a1 1 0 0 1 1 1v3a1 1 0 1 1-2 0v-3a1 1 0 0 1 1-1" />
             </svg>
@@ -406,11 +442,7 @@ const ConsultaEnd = () => {
             disabled={loading}
           />
 
-          <button
-            type="submit"
-            disabled={loading}
-            className={`consulta-btn ${loading ? "loading" : ""}`}
-          >
+          <button type="submit" disabled={loading} className={`consulta-btn ${loading ? "loading" : ""}`}>
             {loading ? "Consultando..." : "Consultar"}
           </button>
 
@@ -480,20 +512,13 @@ const ConsultaEnd = () => {
           {error && <p className="error-message">{error}</p>}
         </form>
       )}
+
       {activeForm === "massa" && (
         <div className="form-massa-container">
-          <button
-            type="button"
-            onClick={() => document.getElementById("input-massa-cep").click()}
-            disabled={loading}
-          >
+          <button type="button" onClick={() => document.getElementById("input-massa-cep").click()} disabled={loading}>
             Importar Planilha de CEPs
           </button>
-          <button
-            type="button"
-            onClick={handleDownloadModel}
-            disabled={loading}
-          >
+          <button type="button" onClick={handleDownloadModel} disabled={loading}>
             Baixar Planilha Modelo (CEP)
           </button>
           <input
@@ -512,12 +537,14 @@ const ConsultaEnd = () => {
           )}
 
           {!loading && massConsultaMessage && (
-            <div className={
-              massConsultaMessage.toLowerCase().includes("erro") ||
+            <div
+              className={
+                massConsultaMessage.toLowerCase().includes("erro") ||
                 massConsultaMessage.toLowerCase().includes("falha")
-                ? "error-message"
-                : "success-message"
-            }>
+                  ? "error-message"
+                  : "success-message"
+              }
+            >
               {massConsultaMessage}
             </div>
           )}
@@ -596,16 +623,20 @@ const ConsultaEnd = () => {
               </button>
             </div>
 
-            {/* BOTÃO "Ver endereço no maps" */}
             {(resultado.resultado_api.cep && resultado.resultado_api.street) && (
               <button
                 className="maps-btn"
                 style={{ marginTop: 12, marginBottom: 10 }}
                 type="button"
-                onClick={() => {
-                  const endereco = `${resultado.resultado_api.cep} ${resultado.resultado_api.street}${resultado.resultado_api.neighborhood ? `, ${resultado.resultado_api.neighborhood}` : ""} ${resultado.resultado_api.city ? `, ${resultado.resultado_api.city}` : ""} ${resultado.resultado_api.state ? `, ${resultado.resultado_api.state}` : ""}`;
-                  window.open(`https://www.google.com/maps/place/${encodeURIComponent(endereco)}`, "_blank");
-                }}
+                onClick={() =>
+                  openInMaps({
+                    street: resultado.resultado_api.street,
+                    neighborhood: resultado.resultado_api.neighborhood,
+                    city: resultado.resultado_api.city,
+                    state: resultado.resultado_api.state,
+                    cep: resultado.resultado_api.cep,
+                  })
+                }
               >
                 Ver endereço no maps
               </button>
@@ -614,74 +645,84 @@ const ConsultaEnd = () => {
         )}
 
       {/* RESULTADO - CONSULTA POR CHAVES (múltiplos) */}
-      {activeForm === "chaves" && resultado?.resultado_api?.resultados_viacep && resultado.resultado_api.resultados_viacep.length > 0 && (
-        <div className="card-resultado" ref={resultadoRef}>
-          <h4>Resultados encontrados</h4>
-          <table className="historico-table">
-            <thead>
-              <tr>
-                <th>CEP</th>
-                <th>Logradouro</th>
-                <th>Cidade</th>
-                <th>UF</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {resultado.resultado_api.resultados_viacep.map((item, idx) => (
-                <React.Fragment key={idx}>
-                  <tr
-                    className={selectedResultIndex === idx ? 'active-row' : ''}
-                    onClick={() => handleExpandResult(idx)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <td>{item.cep || 'N/A'}</td>
-                    <td>{item.logradouro || 'N/A'}</td>
-                    <td>{item.localidade || 'N/A'}</td>
-                    <td>{item.uf || 'N/A'}</td>
-                    <td className="expand-icon">
-                      <i className={`bi ${selectedResultIndex === idx ? 'bi-chevron-up' : 'bi-chevron-down'}`}></i>
-                    </td>
-                  </tr>
-                  {selectedResultIndex === idx && (
-                    <tr>
-                      <td colSpan="5">
-                        <div className="detalhes-historico-panel">
-                          <p><strong>CEP:</strong> {item.cep || 'N/A'}</p>
-                          <p><strong>Logradouro:</strong> {item.logradouro || 'N/A'}</p>
-                          <p><strong>Bairro:</strong> {item.bairro || 'N/A'}</p>
-                          <p><strong>Cidade:</strong> {item.localidade || 'N/A'}</p>
-                          <p><strong>UF:</strong> {item.uf || 'N/A'}</p>
-                          <p><strong>Complemento:</strong> {item.complemento || 'N/A'}</p>
-                          {/* BOTÃO "Ver endereço no maps" para cada resultado */}
-                          {(item.cep && item.logradouro) && (
-                            <button
-                              className="maps-btn"
-                              style={{ marginTop: 8 }}
-                              type="button"
-                              onClick={() => {
-                                const endereco = `${item.cep} ${item.logradouro}${item.bairro ? `, ${item.bairro}` : ""} ${item.localidade ? `, ${item.localidade}` : ""} ${item.uf ? `, ${item.uf}` : ""}`;
-                                window.open(`https://www.google.com/maps/place/${encodeURIComponent(endereco)}`, "_blank");
-                              }}
-                            >
-                              Ver endereço no maps
-                            </button>
-                          )}
-                        </div>
+      {activeForm === "chaves" &&
+        resultado?.resultado_api?.resultados_viacep &&
+        resultado.resultado_api.resultados_viacep.length > 0 && (
+          <div className="card-resultado" ref={resultadoRef}>
+            <h4>Resultados encontrados</h4>
+            <table className="historico-table">
+              <thead>
+                <tr>
+                  <th>CEP</th>
+                  <th>Logradouro</th>
+                  <th>Cidade</th>
+                  <th>UF</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {resultado.resultado_api.resultados_viacep.map((item, idx) => (
+                  <React.Fragment key={idx}>
+                    <tr
+                      className={selectedResultIndex === idx ? "active-row" : ""}
+                      onClick={() => setSelectedResultIndex(selectedResultIndex === idx ? null : idx)}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <td>{item.cep || "N/A"}</td>
+                      <td>{item.logradouro || "N/A"}</td>
+                      <td>{item.localidade || "N/A"}</td>
+                      <td>{item.uf || "N/A"}</td>
+                      <td className="expand-icon">
+                        <i className={`bi ${selectedResultIndex === idx ? "bi-chevron-up" : "bi-chevron-down"}`}></i>
                       </td>
                     </tr>
-                  )}
-                </React.Fragment>
-              ))}
-            </tbody>
-          </table>
-          {activeForm === "chaves" && isBuscaChaveSemResultado(resultado) && hasQueried && !loading && !error && (
-            <div className="no-results-message">
-              Nenhum endereço encontrado para os parâmetros fornecidos.
-            </div>
-          )}
-        </div>
-      )}
+                    {selectedResultIndex === idx && (
+                      <tr>
+                        <td colSpan="5">
+                          <div className="detalhes-historico-panel">
+                            <p><strong>CEP:</strong> {item.cep || "N/A"}</p>
+                            <p><strong>Logradouro:</strong> {item.logradouro || "N/A"}</p>
+                            <p><strong>Bairro:</strong> {item.bairro || "N/A"}</p>
+                            <p><strong>Cidade:</strong> {item.localidade || "N/A"}</p>
+                            <p><strong>UF:</strong> {item.uf || "N/A"}</p>
+                            <p><strong>Complemento:</strong> {item.complemento || "N/A"}</p>
+                            {(item.cep && item.logradouro) && (
+                              <button
+                                className="maps-btn"
+                                style={{ marginTop: 8 }}
+                                type="button"
+                                onClick={() =>
+                                  openInMaps({
+                                    street: item.logradouro,
+                                    neighborhood: item.bairro,
+                                    city: item.localidade,
+                                    state: item.uf,
+                                    cep: item.cep,
+                                  })
+                                }
+                              >
+                                Ver endereço no maps
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+            {activeForm === "chaves" &&
+              isBuscaChaveSemResultado(resultado) &&
+              hasQueried &&
+              !loading &&
+              !error && (
+                <div className="no-results-message">
+                  Nenhum endereço encontrado para os parâmetros fornecidos.
+                </div>
+              )}
+          </div>
+        )}
     </div>
   );
 };

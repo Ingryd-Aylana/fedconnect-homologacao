@@ -19,7 +19,6 @@ function formatDateBR(dateStr) {
 }
 
 const ConsultaPF = () => {
-
   const [copiado, setCopiado] = useState({});
   const [showPopup, setShowPopup] = useState(false);
 
@@ -38,6 +37,9 @@ const ConsultaPF = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [resultado, setResultado] = useState(null);
+
+  // 🆕 Flag para controlar o scroll automático somente após novo resultado
+  const [scrollOnNextResult, setScrollOnNextResult] = useState(false);
 
   const [formData, setFormData] = useState({
     cpf: "",
@@ -61,10 +63,12 @@ const ConsultaPF = () => {
       ...prev,
       [name]: formattedValue,
     }));
+    setScrollOnNextResult(false); // evita scroll enquanto o usuário edita
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setScrollOnNextResult(false); // zera antes de iniciar nova consulta
     setLoading(true);
     setError(null);
     setResultado(null);
@@ -116,24 +120,25 @@ const ConsultaPF = () => {
 
     try {
       const response = await ConsultaService.realizarConsulta(payload);
-      setResultado(response?.data ?? response);
+      const apiData = response?.data ?? response;
 
-
-      const apiStatus = response?.data?.resultado_api?.Status?.api
-        || response?.resultado_api?.Status?.api;
-
+      // Opcional: checagem de status específico se a API retornar isso
+      const apiStatus =
+        apiData?.resultado_api?.Status?.api || apiData?.Status?.api;
       if (Array.isArray(apiStatus) && apiStatus[0]?.Code === -128) {
         setError("Erro na base de consulta, tente novamente mais tarde");
+        setResultado(null);
       } else {
-        const errorMessage =
-          apiError?.Message ||
-          err.response?.data?.detail ||
-          err.response?.data?.message ||
-          err.message ||
-          "Erro ao realizar consulta.";
-        setError(errorMessage);
+        setResultado(apiData);
+        setScrollOnNextResult(true); // ativa o scroll apenas após resultado chegar
       }
-      console.error("Erro na consulta PF:", apiError || err);
+    } catch (err) {
+      const friendly =
+        err?.response?.data?.detail ||
+        err?.response?.data?.message ||
+        err?.message ||
+        "Erro ao realizar consulta.";
+      setError(friendly);
     } finally {
       setLoading(false);
     }
@@ -162,7 +167,7 @@ const ConsultaPF = () => {
         const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
         const cpfsParaConsulta = jsonData.map((row) => ({
-          CPF: preencherZeros(row.CPF, 11)
+          CPF: preencherZeros(row.CPF, 11),
         }));
 
         const cpfsValidos = cpfsParaConsulta.filter(
@@ -218,7 +223,6 @@ const ConsultaPF = () => {
                   "Data de Nascimento": formatDateBR(consultaResult.BirthDate),
                   Idade: consultaResult.Age || "N/A",
                   "Nome da Mãe": consultaResult.MotherName || "N/A",
-
                   Gênero: consultaResult.Gender || "N/A",
                   "Nome Comum (Alias)":
                     consultaResult.Aliases?.CommonName || "N/A",
@@ -239,7 +243,6 @@ const ConsultaPF = () => {
                   "Data de Nascimento": "N/A",
                   Idade: "N/A",
                   "Nome da Mãe": "N/A",
-
                   Gênero: "N/A",
                   "Nome Comum (Alias)": "N/A",
                   "Indicação de Óbito": "N/A",
@@ -259,12 +262,12 @@ const ConsultaPF = () => {
                 "Data de Nascimento": "N/A",
                 Idade: "N/A",
                 "Nome da Mãe": "N/A",
-
                 Gênero: "N/A",
                 "Nome Comum (Alias)": "N/A",
                 "Indicação de Óbito": "N/A",
-                Erro: `Falha na consulta. Motivo: ${result.reason?.message || "Erro de rede/servidor"
-                  }`,
+                Erro: `Falha na consulta. Motivo: ${
+                  result.reason?.message || "Erro de rede/servidor"
+                }`,
               });
             }
           });
@@ -311,6 +314,7 @@ const ConsultaPF = () => {
     };
     reader.readAsArrayBuffer(file);
   };
+
   const handleDownloadModel = async () => {
     setLoading(true);
     setError(null);
@@ -347,22 +351,38 @@ const ConsultaPF = () => {
 
   const resultadoRef = useRef(null);
 
+  // 🆕 Scroll controlado: só rola quando houver novo resultado e a flag estiver ativa
   useEffect(() => {
-    if (
-      (activeForm === "cpf" && resultado?.resultado_api?.Result?.length > 0) ||
-      (activeForm === "chaves" && resultado?.resultado_api?.Result?.length > 0)
-    ) {
-      setTimeout(() => {
-        resultadoRef.current?.scrollIntoView({
+    const hasCpfResults =
+      activeForm === "cpf" &&
+      Array.isArray(resultado?.resultado_api?.Result) &&
+      resultado.resultado_api.Result.length > 0;
+
+    const hasChavesResults =
+      activeForm === "chaves" &&
+      Array.isArray(resultado?.resultado_api?.Result) &&
+      resultado.resultado_api.Result.length > 0;
+
+    if (!loading && scrollOnNextResult && resultadoRef.current) {
+      if (hasCpfResults || hasChavesResults) {
+        resultadoRef.current.scrollIntoView({
           behavior: "smooth",
           block: "start",
         });
-      }, 180);
+        setScrollOnNextResult(false); // desliga após usar
+      }
     }
-  }, [resultado, activeForm]);
+  }, [loading, scrollOnNextResult, resultado, activeForm]);
 
   return (
     <div className="consulta-container03">
+      {showPopup && (
+        <div className="popup-copiado">
+          <FiCheck style={{ marginRight: 8 }} />
+          Copiado para área de transferência!
+        </div>
+      )}
+
       <h1 className="consultas-title">
         <i className="bi-clipboard-data"></i> Consultas Disponíveis
       </h1>
@@ -376,6 +396,7 @@ const ConsultaPF = () => {
             setError(null);
             setResultado(null);
             setMassConsultaMessage("");
+            setScrollOnNextResult(false); // evita scroll ao trocar de aba
           }}
         >
           <div className="icon-container">
@@ -407,10 +428,12 @@ const ConsultaPF = () => {
               dataNascimento: "",
               motherName: "",
               fatherName: "",
+              estado: "",
             });
             setError(null);
             setResultado(null);
             setMassConsultaMessage("");
+            setScrollOnNextResult(false); // evita scroll ao trocar de aba
           }}
         >
           <div className="icon-container">
@@ -434,6 +457,7 @@ const ConsultaPF = () => {
             setError(null);
             setResultado(null);
             setMassConsultaMessage("");
+            setScrollOnNextResult(false); // evita scroll ao trocar de aba
           }}
         >
           <div className="icon-container">
@@ -613,7 +637,6 @@ const ConsultaPF = () => {
               );
             })()}
           </div>
-
         )}
 
       {activeForm === "chaves" && (
@@ -733,8 +756,8 @@ const ConsultaPF = () => {
             <div
               className={
                 massConsultaMessage.toLowerCase().includes("erro") ||
-                  massConsultaMessage.toLowerCase().includes("falha") ||
-                  massConsultaMessage.toLowerCase().includes("250")
+                massConsultaMessage.toLowerCase().includes("falha") ||
+                massConsultaMessage.toLowerCase().includes("250")
                   ? "error-message"
                   : "success-message"
               }
@@ -776,10 +799,11 @@ const ConsultaPF = () => {
                       <td>{formatDateBR(item.BasicData?.BirthDate)}</td>
                       <td className="expand-icon">
                         <i
-                          className={`bi ${selectedResultIndex === idx
-                            ? "bi-chevron-up"
-                            : "bi-chevron-down"
-                            }`}
+                          className={`bi ${
+                            selectedResultIndex === idx
+                              ? "bi-chevron-up"
+                              : "bi-chevron-down"
+                          }`}
                         ></i>
                       </td>
                     </tr>

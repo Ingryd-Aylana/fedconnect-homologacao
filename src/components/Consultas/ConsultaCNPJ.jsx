@@ -120,6 +120,9 @@ const ConsultaCNPJ = () => {
   const [resultado, setResultado] = useState(null);
   const [hasQueried, setHasQueried] = useState(false);
 
+  // 🆕 Flag para controlar quando rolar até o resultado
+  const [scrollOnNextResult, setScrollOnNextResult] = useState(false);
+
   const [formData, setFormData] = useState({
     razaoSocial: "",
     uf: "",
@@ -207,20 +210,23 @@ const ConsultaCNPJ = () => {
   const cnpjData = getCnpjData(resultado);
   const resultList = getResultList(resultado);
 
+  // 🆕 Scroll controlado para não "puxar" quando iniciar nova consulta
   useEffect(() => {
-    if (
-      (activeForm === "cnpj" && cnpjData) ||
-      (activeForm === "chaves" && Array.isArray(resultList) && resultList.length > 0)
-    ) {
-      setTimeout(() => {
-        resultadoRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 180);
+    if (!loading && scrollOnNextResult && resultadoRef.current) {
+      const hasCnpj = activeForm === "cnpj" && !!cnpjData;
+      const hasChaves = activeForm === "chaves" && Array.isArray(resultList) && resultList.length > 0;
+
+      if (hasCnpj || hasChaves) {
+        resultadoRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+        setScrollOnNextResult(false); // desliga após usar
+      }
     }
-  }, [activeForm, cnpjData, resultList]);
+  }, [loading, scrollOnNextResult, activeForm, cnpjData, resultList]);
 
   const handleCnpjChange = (e) => {
     const rawCnpj = e.target.value.replace(/\D/g, "").slice(0, 14);
     setCnpj(rawCnpj);
+    setScrollOnNextResult(false); // evita scroll enquanto digita
   };
 
   const handleFormChange = (e) => {
@@ -229,10 +235,12 @@ const ConsultaCNPJ = () => {
       ...prev,
       [name]: value,
     }));
+    setScrollOnNextResult(false); // evita scroll enquanto digita
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setScrollOnNextResult(false); // zera antes de começar nova consulta
     setLoading(true);
     setError(null);
     setResultado(null);
@@ -290,9 +298,9 @@ const ConsultaCNPJ = () => {
 
     try {
       const response = await ConsultaService.realizarConsulta(payload);
-      // 🆕 antes: const apiData = response?.data ?? console.log(...)
-      const apiData = response?.data ?? response; // mantém compatível com ambos formatos
+      const apiData = response?.data ?? response; // compatível com ambos formatos
       setResultado(apiData);
+      setScrollOnNextResult(true); // ativa o scroll somente após sucesso
     } catch (err) {
       const friendly = getFriendlyError(err, payload);
       setError(friendly);
@@ -439,19 +447,18 @@ const ConsultaCNPJ = () => {
     setMassResultRows([]);
     setMassProgress({ current: 0, total: 0 });
     setMassProcessing(false);
+    setScrollOnNextResult(false); // 🆕 evita scroll ao trocar de aba
   };
-
-  {
-    showPopup && (
-      <div className="popup-copiado">
-        <FiCheck style={{ marginRight: 8 }} />
-        Copiado para área de transferência!
-      </div>
-    );
-  }
 
   return (
     <div className="consulta-container03">
+      {showPopup && (
+        <div className="popup-copiado">
+          <FiCheck style={{ marginRight: 8 }} />
+          Copiado para área de transferência!
+        </div>
+      )}
+
       <h1 className="consultas-title">
         <i className="bi-clipboard-data"></i> Consultas Disponíveis
       </h1>
