@@ -76,7 +76,6 @@ const Home = () => {
     : bannerAtual.src.desktop;
 
   useEffect(() => {
-    console.log("isMobile?", isMobile, "bannerSrc:", bannerSrc);
   }, [isMobile, bannerSrc]);
 
   return (

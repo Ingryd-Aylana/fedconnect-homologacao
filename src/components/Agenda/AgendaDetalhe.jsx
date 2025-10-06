@@ -19,9 +19,7 @@ export default function AgendaDetalhe({ reserva, onClose, onDelete }) {
 
   if (!reserva) return null;
 
-  const dataObj = isDate(reserva?.data)
-    ? reserva.data
-    : new Date(reserva?.data);
+  const dataObj = isDate(reserva?.data) ? reserva.data : new Date(reserva?.data);
   const dataFmt =
     reserva?.data && !isNaN(dataObj)
       ? format(dataObj, "dd/MM/yyyy", { locale: ptBR })
@@ -30,11 +28,11 @@ export default function AgendaDetalhe({ reserva, onClose, onDelete }) {
   const participantesArray = Array.isArray(reserva?.participantes)
     ? reserva.participantes
     : typeof reserva?.participantes === "string"
-    ? reserva.participantes
-        .split(",")
-        .map((p) => p.trim())
-        .filter(Boolean)
+    ? reserva.participantes.split(",").map((p) => p.trim()).filter(Boolean)
     : [];
+
+  const tema =
+    reserva?.tema ?? reserva?.assunto ?? reserva?.titulo ?? "-";
 
   return (
     <div className="agenda-detalhe-overlay">
@@ -50,20 +48,12 @@ export default function AgendaDetalhe({ reserva, onClose, onDelete }) {
         <h2 className="agenda-detalhe-titulo">Detalhes da Reserva</h2>
 
         <div className="agenda-detalhe-info">
-          {canSeeSensitive && (
-            <>
-              <p>
-                <strong>Tema:</strong> {reserva?.tema ?? "-"}
-              </p>
-              <p>
-                <strong>Participantes:</strong>{" "}
-                {participantesArray.length > 0
-                  ? participantesArray.join(", ")
-                  : "-"}
-              </p>
-            </>
-          )}
+          {/* Tema visível para TODOS os perfis */}
+          <p>
+            <strong>Tema:</strong> {tema}
+          </p>
 
+          {/* Demais infos gerais */}
           <p>
             <strong>Data:</strong> {dataFmt}
           </p>
@@ -73,6 +63,16 @@ export default function AgendaDetalhe({ reserva, onClose, onDelete }) {
           <p>
             <strong>Duração:</strong> {reserva?.duracao ?? "-"} min
           </p>
+
+          {/* Campos sensíveis só para perfis autorizados */}
+          {canSeeSensitive && (
+            <p>
+              <strong>Participantes:</strong>{" "}
+              {participantesArray.length > 0
+                ? participantesArray.join(", ")
+                : "-"}
+            </p>
+          )}
         </div>
 
         <div className="agenda-detalhe-actions">
@@ -93,4 +93,4 @@ export default function AgendaDetalhe({ reserva, onClose, onDelete }) {
       </div>
     </div>
   );
-}AgendaDetalhe
+}

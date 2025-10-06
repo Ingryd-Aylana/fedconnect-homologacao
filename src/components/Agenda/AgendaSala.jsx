@@ -31,16 +31,8 @@ function getFirstMondayOfMonth(date) {
 }
 
 const HORARIOS = [
-  "09:00",
-  "10:00",
-  "11:00",
-  "12:00",
-  "13:00",
-  "14:00",
-  "15:00",
-  "16:00",
-  "17:00",
-  "18:00",
+  "09:00","10:00","11:00","12:00","13:00",
+  "14:00","15:00","16:00","17:00","18:00",
 ];
 
 const diasSemana = ["Seg", "Ter", "Qua", "Qui", "Sex"];
@@ -67,27 +59,30 @@ export default function AgendaSala() {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [reservaSelecionada, setReservaSelecionada] = useState(null);
   const [showDeletedPopup, setShowDeletedPopup] = useState(false);
+  const [toastMsg, setToastMsg] = useState("");
 
   const { user } = useAuth();
-  const userRole = String(user?.nivel_acesso || "").toLowerCase();
+
+  const refreshWeek = async () => {
+    const dataInicio = format(startDate, "yyyy-MM-dd");
+    const dataFim = format(addDays(startDate, 4), "yyyy-MM-dd");
+    await fetchReservas(dataInicio, dataFim);
+  };
 
   const fetchReservas = async (dataInicio, dataFim) => {
     try {
       const response = await AgendaService.getReservas(dataInicio, dataFim);
       let data;
-      if (response && response.results) {
-        data = response.results;
-      } else if (Array.isArray(response)) {
-        data = response;
-      } else {
-        data = [];
-      }
+      if (response && response.results) data = response.results;
+      else if (Array.isArray(response)) data = response;
+      else data = [];
+
       const formattedReservas = data.map((reserva) => ({
         ...reserva,
         data: parseISO(reserva.data),
       }));
       setReservas(formattedReservas);
-    } catch (error) {
+    } catch {
       setReservas([]);
     }
   };
@@ -110,25 +105,54 @@ export default function AgendaSala() {
     setSelectedSlot(null);
   };
 
+  const isSlotDisponivel = (dataDateObj, horario) => {
+    const alvo = format(dataDateObj, "yyyy-MM-dd");
+    return !reservas.some(
+      (r) => format(r.data, "yyyy-MM-dd") === alvo && r.horario === horario
+    );
+  };
+
   const handleSaveReserva = async (novaReserva) => {
     try {
+      const dataObj =
+        novaReserva.data instanceof Date
+          ? novaReserva.data
+          : parseISO(novaReserva.data);
+
+      if (!isSlotDisponivel(dataObj, novaReserva.horario)) {
+        setToastMsg("Já existe uma reunião marcada para este horário.");
+        setTimeout(() => setToastMsg(""), 2500);
+        return;
+      }
+
       const payload = {
         ...novaReserva,
-        data: format(novaReserva.data, "yyyy-MM-dd"),
+        data: format(dataObj, "yyyy-MM-dd"),
         participantes: novaReserva.participantes?.join(", "),
         criado_por: user.id,
       };
+
       await AgendaService.createReserva(payload);
       closeModal();
-      fetchReservas();
-    } catch (error) {}
+      await refreshWeek();
+      setToastMsg("Reserva criada com sucesso!");
+      setTimeout(() => setToastMsg(""), 2000);
+    } catch (error) {
+      const status = error?.response?.status;
+      if (status === 409) {
+        setToastMsg("Conflito: esse horário acabou de ser reservado.");
+      } else {
+        setToastMsg("Falha ao criar a reserva. Tente novamente.");
+      }
+      setTimeout(() => setToastMsg(""), 2600);
+    }
   };
 
   const handleDeleteReserva = async (reservaParaDeletar) => {
     try {
       await AgendaService.deleteReserva(reservaParaDeletar.id);
       setReservaSelecionada(null);
-      fetchReservas();
+      await refreshWeek();
       setShowDeletedPopup(true);
       setTimeout(() => setShowDeletedPopup(false), 2600);
     } catch (error) {
@@ -166,6 +190,7 @@ export default function AgendaSala() {
                   r.horario === hora
               );
               const isLivre = reservasSlot.length === 0;
+
               return (
                 <td
                   key={dIdx}
@@ -182,6 +207,7 @@ export default function AgendaSala() {
                   ) : isLivre ? (
                     <span style={{ color: "#f37171ff" }}></span>
                   ) : (
+                    
                     <button
                       className="agenda-reservado-pill"
                       title="Ver detalhes"
@@ -204,6 +230,7 @@ export default function AgendaSala() {
       <h1 className="agenda-titulo">
         <i className="bi bi-calendar-event" /> Agenda da Sala de Reunião
       </h1>
+
       <div className="agenda-toolbar">
         <button className="agenda-week-btn" onClick={() => handleWeekChange(-1)}>
           <FaChevronLeft />
@@ -237,16 +264,14 @@ export default function AgendaSala() {
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-content agenda-modal-content">
-            <button className="modal-close" onClick={closeModal}>
-              ×
-            </button>
+            <button className="modal-close" onClick={closeModal}>×</button>
             <h2 className="agenda-modal-titulo">Nova Reserva</h2>
             <AgendaReservaForm
               initialData={{
                 data: selectedSlot?.dia || startDate,
                 horario: selectedSlot?.hora || "09:00",
               }}
-              userRole={userRole}
+              userRole={String(user?.nivel_acesso || "").toLowerCase()}
               onSave={handleSaveReserva}
               onCancel={closeModal}
             />
@@ -257,7 +282,6 @@ export default function AgendaSala() {
       {reservaSelecionada && (
         <AgendaDetalhe
           reserva={reservaSelecionada}
-          userRole={userRole}
           onClose={() => setReservaSelecionada(null)}
           onDelete={handleDeleteReserva}
         />
@@ -268,6 +292,8 @@ export default function AgendaSala() {
           Reserva excluída com sucesso!
         </div>
       )}
+
+      {!!toastMsg && <div className="agenda-toast">{toastMsg}</div>}
     </div>
   );
 }

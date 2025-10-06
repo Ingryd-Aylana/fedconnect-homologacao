@@ -135,3 +135,22 @@
     }
   }
   
+@media (min-width: 1400px) {
+  .ferramentas-container {
+    margin-left: 18vw !important;
+    max-width: 1200px !important;
+    padding: 48px 56px 42px 56px !important;
+    border-radius: 2.3rem !important;
+  }
+}
+
+@media (min-width: 1200px) and (max-width: 1399px) {
+  .ferramentas-container {
+    margin-left: 18.5vw !important;
+    max-width: 1100px !important;
+    padding: 32px 32px 24px 32px !important;
+    border-radius: 1.5rem !important;
+  }
+}
+
+

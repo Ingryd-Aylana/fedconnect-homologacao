@@ -65,8 +65,8 @@ export default function AgendaReservaForm({
       </div>
       <div className="agenda-form-group">
         <label>
-          Participantes{" "}
-          <span className="agenda-form-hint">(Separe por vírgula)</span>:
+          Participantes:{" "}
+          <span className="agenda-form-hint">(Separe por vírgula)</span>
         </label>
         <input
           className="agenda-form-input"

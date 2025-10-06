@@ -195,7 +195,7 @@ const EnvioEmail = () => {
     return (
         <div className="consulta-container03">
             <h1 className="email-title">
-            <i className="bi bi-envelope-fill"></i> Escolha a opção desejada
+                <i className="bi bi-envelope-fill"></i> Escolha a opção desejada
             </h1>
 
 
@@ -229,23 +229,18 @@ const EnvioEmail = () => {
                 </div>
 
                 <div
-                    className={`card card-option ${activeForm === "config" ? "active" : ""}`}
+                    className={`card card-option`}
                     onClick={() => {
-                        setActiveForm("config");
-                        setError(null);
-                        setMessage("");
+                        navigate("/config-email");
                     }}
+                    style={{ cursor: "pointer" }}
                 >
-                    <div
-                        onClick={() => navigate("/config-email")}
-                        style={{ cursor: "pointer" }}
-                    >
-                        <div className="icon-container">
-                            <Settings size={28} color="white" />
-                        </div>
-                        <h5>Configurações</h5>
+                    <div className="icon-container">
+                        <Settings size={28} color="white" />
                     </div>
+                    <h5>Configurações</h5>
                 </div>
+
             </div>
 
             {activeForm === "envio" && (

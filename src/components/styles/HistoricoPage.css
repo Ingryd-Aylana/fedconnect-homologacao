@@ -181,6 +181,34 @@
   color: #2463eb;
 }
 
+.pagination-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 20px 0 0 0;
+  justify-content: center;
+}
+.pagination-bar button {
+  padding: 5px 14px;
+  background: #2463eb;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.pagination-bar button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.pagination-bar .total-registros {
+  font-size: .96rem;
+  color: #aaa;
+  margin-left: 16px;
+}
+
+
 @media (max-width: 800px) {
   .historico-container {
     padding: 1.2rem 0.3rem 0 0.3rem;
