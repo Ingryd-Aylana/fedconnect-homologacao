@@ -9,7 +9,7 @@ const ferramentas = [
   },
   {
     nome: "Fiança",
-    url: "https://plataforma.web.segimob.com/auth/login/",
+    url: "https://plataforma.web.segimob.com/auth/login/E04BC0B1-109E-495F-893E-0F3AD5AF2D16",
     descricao: "Sistema de fiança locatícia para análise e administração de garantias.",
   },
   {

@@ -21,7 +21,7 @@ const ferramentas = [
     logo: "/imagens/logo-Condomed.png",
   },
   {
-    nome: "Dashboard Comercial",
+    nome: "Acompanhamento Comercial",
     url: "/acompanhamento",
     descricao: "Acompanhe as métricas do comercial de forma única.",
     logo: "/imagens/LOGO.png",

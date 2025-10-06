@@ -1,11 +1,12 @@
 .import-vida-container {
-  padding: 38px 18px 30px 18px;
+  padding: 30px 18px 30px 18px;
   max-width: 520px;
   border-radius: 18px;
   box-shadow: 0 6px 30px rgba(36,99,235,0.08);
   box-sizing: border-box;
   transition: box-shadow 0.19s;
   margin-left: 38vw;
+  margin-top: 0.02rem;
 }
 
 .import-vida-container h1 {
@@ -116,3 +117,26 @@
     font-size: 1rem;
   }
 }
+
+@media (min-width: 1400px) {
+  .import-vida-container {
+    margin-left: 38vw;
+    margin-right: auto;
+    max-width: 700px;
+    padding: 54px 50px 44px 50px;
+    border-radius: 28px;
+    font-size: 1.13rem;
+  }
+}
+
+@media (min-width: 1200px) and (max-width: 1399px) {
+  .import-vida-container {
+    margin-left: 35vw;
+    margin-right: auto;
+    max-width: 540px;
+    padding: 38px 26px 30px 26px;
+    border-radius: 22px;
+    font-size: 1.05rem;
+  }
+}
+

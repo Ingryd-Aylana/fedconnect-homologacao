@@ -36,7 +36,7 @@
   justify-items: center;
   align-items: stretch;
   width: 100%;
-  margin-left: 08vw;
+  margin-left: 10vw;
 }
 
 .card-option {
@@ -813,7 +813,7 @@
 @media (min-width: 1200px) {
   .consulta-container03,
   .consulta-container04 {
-    margin-left: 20vw;
+    margin-left: 15vw;
     margin-right: auto;
     max-width: 1440px;
   }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../../styles/Conta.css';
 import { Link } from 'react-router-dom';
 import { UserService } from '../../../services/userService';
@@ -19,11 +19,9 @@ const ConfigConta = () => {
     const [isFedEditado, setIsFedEditado] = useState(false);
 
     const [pagina, setPagina] = useState(1);
-    const [porPagina, setPorPagina] = useState(15);
+    const [porPagina, setPorPagina] = useState(15); // Pode mudar o tamanho
     const [totalPaginas, setTotalPaginas] = useState(1);
     const [totalResultados, setTotalResultados] = useState(0);
-
-    const debounceRef = useRef();
 
     const fetchUsuarios = async () => {
         try {
@@ -43,7 +41,8 @@ const ConfigConta = () => {
 
     useEffect(() => {
         fetchUsuarios();
-    }, [pagina, porPagina, filtroBusca]);
+        // eslint-disable-next-line
+    }, [pagina, porPagina, filtroBusca]); // Atualiza na troca de página, filtro ou limite
 
     const exibirMensagem = (tipo, mensagem) => {
         if (tipo === 'sucesso') {
@@ -116,13 +115,6 @@ const ConfigConta = () => {
 
     const niveisAcesso = ["admin", "usuario", "comercial", "moderador"];
 
-    const onChangeFiltroBusca = (e) => {
-        setPagina(1);
-        const value = e.target.value;
-        clearTimeout(debounceRef.current);
-        debounceRef.current = setTimeout(() => setFiltroBusca(value), 400);
-    };
-
     const renderPagination = () => (
         <div className="pagination-bar">
             <button
@@ -164,8 +156,11 @@ const ConfigConta = () => {
                         <input
                             type="text"
                             placeholder="Buscar por nome ou e-mail"
-                            defaultValue={filtroBusca}
-                            onChange={onChangeFiltroBusca}
+                            value={filtroBusca}
+                            onChange={e => {
+                                setPagina(1); // Sempre volta pra página 1 ao buscar
+                                setFiltroBusca(e.target.value)
+                            }}
                         />
                     </div>
 
@@ -179,43 +174,35 @@ const ConfigConta = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {usuarios.length === 0 ? (
-                                <tr>
-                                    <td colSpan={4} style={{ textAlign: "center", padding: 24, color: "#888" }}>
-                                        Nenhum usuário encontrado para esse filtro.
+                            {usuarios.map(usuario => (
+                                <tr key={usuario.id}>
+                                    <td>{usuario.nome_completo}</td>
+                                    <td>{usuario.email}</td>
+                                    <td>
+                                        <span className="badge">
+                                            {usuario.nivel_acesso || 'Usuário'}
+                                        </span>
                                     </td>
-                                </tr>
-                            ) : (
-                                usuarios.map(usuario => (
-                                    <tr key={usuario.id}>
-                                        <td>{usuario.nome_completo}</td>
-                                        <td>{usuario.email}</td>
-                                        <td>
-                                            <span className="badge">
-                                                {usuario.nivel_acesso || 'Usuário'}
-                                            </span>
-                                        </td>
-                                        <td style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <td style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <button
+                                            className="btn-icon"
+                                            onClick={() => abrirModalEdicao(usuario)}
+                                            title="Editar usuário"
+                                        >
+                                            <i className="bi bi-pencil-square text-primary"></i>
+                                        </button>
+                                        {usuario.id !== usuarios[0]?.id && (
                                             <button
                                                 className="btn-icon"
-                                                onClick={() => abrirModalEdicao(usuario)}
-                                                title="Editar usuário"
+                                                onClick={() => abrirModalExclusao(usuario)}
+                                                title="Excluir usuário"
                                             >
-                                                <i className="bi bi-pencil-square text-primary"></i>
+                                                <i className="bi bi-trash text-danger"></i>
                                             </button>
-                                            {usuario.id !== usuarios[0]?.id && (
-                                                <button
-                                                    className="btn-icon"
-                                                    onClick={() => abrirModalExclusao(usuario)}
-                                                    title="Excluir usuário"
-                                                >
-                                                    <i className="bi bi-trash text-danger"></i>
-                                                </button>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
+                                        )}
+                                    </td>
+                                </tr>
+                            ))}
                         </tbody>
                     </table>
 

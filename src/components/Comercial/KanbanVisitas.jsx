@@ -19,26 +19,44 @@ export default function KanbanVisitas({ visitas, onConfirmar, onStatusChange, on
 
   return (
     <div className="kanban-visitas">
-      {statusValues.map(status => (
-        <div key={status} className="kanban-col">
-          <h4>{statusLabels[status]}</h4>
-          {visitas.filter(v => v.status === status).map(v => (
-            <div
-              key={v.id}
-              className="kanban-card"
-              style={{ cursor: "pointer" }}
-              onClick={() => onCardClick && onCardClick(v)}
-            >
-              <div><b>{v.empresa}</b></div>
-              <div>Data: {formatDateBR(v.data)}</div>
-              {v.hora && <div>Hora: {v.hora.substring(0, 5)}</div>}
-              <div>
-                Responsável: {v.responsavel ? v.responsavel.nome_completo : "N/A"}
-              </div>
+      {statusValues.map(status => {
+        const statusVisitas = visitas.filter(v => v.status === status);
+
+        return (
+          <div key={status} className="kanban-col">
+            {/* 1. Cabeçalho Fixo (usa a classe kanban-col-header) */}
+            <div className="kanban-col-header">
+              <h4>
+                {statusLabels[status]}
+              </h4>
             </div>
-          ))}
-        </div>
-      ))}
+
+            {/* 2. Corpo Rolável (USA A CLASSE CRUCIAL: kanban-col-body) */}
+            <div className="kanban-col-body">
+              {statusVisitas.map(v => (
+                <div
+                  key={v.id}
+                  className="kanban-card"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => onCardClick && onCardClick(v)}
+                >
+                  <div><b>{v.empresa}</b></div>
+                  <div>Data: {formatDateBR(v.data)}</div>
+                  {v.hora && <div>Hora: {v.hora.substring(0, 5)}</div>}
+                  <div>
+                    Responsável: {v.responsavel ? v.responsavel.nome_completo : "N/A"}
+                  </div>
+                </div>
+              ))}
+
+              {/* Adicionado o empty-col para o caso de coluna vazia (opcional) */}
+              {statusVisitas.length === 0 && (
+                <div className="empty-col">Nenhuma visita neste status.</div>
+              )}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

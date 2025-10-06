@@ -59,7 +59,6 @@ function Cadastro() {
             };
 
             const response = await UserService.registerUser(payload);
-            console.log('Usuário cadastrado com sucesso:', response);
             setSucessoCadastro(`Usuário "${response.nome_completo || response.email}" cadastrado com sucesso!`);
 
             setNovoUsuario({

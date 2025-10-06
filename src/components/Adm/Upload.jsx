@@ -49,7 +49,6 @@ export default function UploadCard({ onDataParsed }) {
     try {
       setIsSending(true);
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      console.log("Dados prontos para envio:", dados);
 
       setSuccess(true);
       setError("");

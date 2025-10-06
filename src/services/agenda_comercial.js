@@ -1,16 +1,20 @@
-
 import api from "./api";
 
-const API_URL = "comercial/agenda/"; // Novo endpoint no backend (você precisará criar)
+const API_URL = "comercial/agenda/";
 
 export const AgendaComercialService = {
   /**
-   * Busca todas as visitas para o dashboard comercial.
-   * @returns {Promise<Array>} Uma promessa que retorna uma lista de visitas.
+   * Busca as visitas de um mês específico.
+   * @param {number} ano O ano desejado.
+   * @param {number} mes O mês desejado (1 a 12).
+   * @returns {Promise<Array>} Uma promessa que retorna a lista de visitas filtrada.
    */
-  getVisitas: async () => {
+  getVisitas: async (ano, mes) => {
     try {
-      const response = await api.get(API_URL);
+      // Adiciona os parâmetros 'ano' e 'mes' à requisição GET
+      const response = await api.get(API_URL, {
+        params: { ano, mes },
+      });
       return response.data;
     } catch (error) {
       console.error("Erro ao buscar visitas:", error);
@@ -18,10 +22,10 @@ export const AgendaComercialService = {
     }
   },
 
-/**
-  *@returns {Promise<Object>} 
-  */
-  criarVisita: async(payload) =>{
+  /**
+   * @returns {Promise<Object>}
+   */
+  criarVisita: async (payload) => {
     try {
       const response = await api.post(API_URL, payload);
       return response.data;
@@ -29,18 +33,19 @@ export const AgendaComercialService = {
       console.error("Erro ao criar visita:", error);
       throw error;
     }
-  }
-,
-  /**
+  },
+
   /**
    * Atualiza o status de um agendamento comercial.
    * @param {number} visitaId O ID da visita.
-   * @param {string} novoStatus O novo status ('agendada', 'realizada', 'cancelada').
+   * @param {string} novoStatus O novo status.
+   * @param {Object} extraPayload Dados adicionais.
    * @returns {Promise<Object>} Promessa que retorna a visita atualizada.
    */
-  updateVisitaStatus: async (visitaId, novoStatus) => {
+  updateVisitaStatus: async (visitaId, novoStatus, extraPayload = {}) => {
     try {
-      const response = await api.patch(`${API_URL}${visitaId}/`, { status: novoStatus });
+      const payload = { status: novoStatus, ...extraPayload };
+      const response = await api.patch(`${API_URL}${visitaId}/`, payload);
       return response.data;
     } catch (error) {
       console.error("Erro ao atualizar status da visita:", error);
@@ -49,22 +54,20 @@ export const AgendaComercialService = {
   },
 
   /**
-   * Confirma uma visita e atualiza seus detalhes.
+   * Atualiza os detalhes de uma visita.
    * @param {number} visitaId O ID da visita.
-   * @param {Object} dados Os dados a serem atualizados (comentário, resultado).
+   * @param {Object} dados Os dados completos a serem atualizados.
    * @returns {Promise<Object>} Promessa que retorna a visita atualizada.
    */
   confirmarVisita: async (visitaId, dados) => {
     try {
-      const response = await api.patch(`${API_URL}${visitaId}/`, { ...dados, status: "realizada" });
+      const response = await api.patch(`${API_URL}${visitaId}/`, dados);
       return response.data;
     } catch (error) {
       console.error("Erro ao confirmar visita:", error);
       throw error;
     }
-    
   },
-
 
   deleteVisita: async (visitaId) => {
     try {
@@ -73,6 +76,5 @@ export const AgendaComercialService = {
       console.error("Erro ao excluir visita:", error);
       throw error;
     }
-    },
-
+  },
 };

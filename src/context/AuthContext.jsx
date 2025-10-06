@@ -9,8 +9,6 @@ export const useAuth = () => {
     return useContext(AuthContext);
 };
 
-const publicRoutes = ['/login', '/esqueci-senha', '/', '/redefinir-senha'];
-
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -46,6 +44,7 @@ export const AuthProvider = ({ children }) => {
         }
     }, []);
 
+
     const logout = useCallback(() => {
         // Remove o token do localStorage
         localStorage.removeItem('accessToken');
@@ -56,25 +55,33 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         const checkAuthStatus = async () => {
+            // Tenta obter o token do localStorage
             const token = localStorage.getItem('accessToken');
+
+            // Se não houver token, o usuário não está autenticado
             if (!token) {
                 setLoading(false);
                 setIsAuthenticated(false);
-                if (!publicRoutes.includes(window.location.pathname)) {
+                if (window.location.pathname !== '/login') {
                     navigate('/login');
                 }
                 return;
             }
+
+
             try {
                 const response = await api.get('/users/me/');
                 setUser(response.data);
                 setIsAuthenticated(true);
             } catch (error) {
+                // Se a requisição falhar, o token é inválido/expirado
+               
+                // Remove o token inválido para evitar futuras requisições
                 localStorage.removeItem('accessToken');
                 setUser(null);
                 setIsAuthenticated(false);
 
-                if (!publicRoutes.includes(window.location.pathname)) {
+                if (window.location.pathname !== '/login') {
                     navigate('/login');
                 }
             } finally {
@@ -82,7 +89,6 @@ export const AuthProvider = ({ children }) => {
             }
         };
         checkAuthStatus();
-        // eslint-disable-next-line
     }, [navigate]);
 
     const authContextValue = useMemo(() => ({
