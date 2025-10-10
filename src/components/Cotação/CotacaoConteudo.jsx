@@ -50,18 +50,20 @@ const CotacaoConteudo = () => {
   };
 
   const formatarValorParaPorcentagem = (valor) => {
-    if (typeof valor !== "number") return "0%";
-    return `${Number(valor).toFixed(2).replace(".", ",")}%`;
+    if (valor === null || valor === undefined) return "0%";
+    const n = Number(valor);
+    if (Number.isNaN(n)) return "0%";
+    return `${n.toFixed(2).replace(".", ",")}%`;
   };
 
   const handleChange =
     (setter, type = "money") =>
-      (e) => {
-        const valor = e.target.value;
-        if (type === "percent") setter(formatarPorcentagem(valor));
-        else setter(formatarMoeda(valor));
-        setShowResultado(false);
-      };
+    (e) => {
+      const valor = e.target.value;
+      if (type === "percent") setter(formatarPorcentagem(valor));
+      else setter(formatarMoeda(valor));
+      setShowResultado(false);
+    };
 
   const handleGerarResultado = async () => {
     const dadosParaEnvio = {
@@ -90,7 +92,11 @@ const CotacaoConteudo = () => {
       setEntradas(response.entradas);
       setSaidas(response.saidas);
       setResultado(response.resultado);
-      setPercentual(response.percentual);
+
+      // Ajuste: se vier em fração (0.35), converte para 35; se já vier 35, mantém.
+      const bruto = Number(response.percentual ?? 0);
+      const percentualAjustado = bruto <= 1 ? bruto * 100 : bruto;
+      setPercentual(percentualAjustado);
 
       setShowResultado(true);
     } catch (error) {
@@ -125,7 +131,10 @@ const CotacaoConteudo = () => {
                 name="tipoImovel"
                 value="residencial"
                 checked={tipoImovel === "residencial"}
-                onChange={() => { setTipoImovel("residencial"); setShowResultado(false); }}
+                onChange={() => {
+                  setTipoImovel("residencial");
+                  setShowResultado(false);
+                }}
               />
               Residencial
             </label>
@@ -135,7 +144,10 @@ const CotacaoConteudo = () => {
                 name="tipoImovel"
                 value="comercial"
                 checked={tipoImovel === "comercial"}
-                onChange={() => { setTipoImovel("comercial"); setShowResultado(false); }}
+                onChange={() => {
+                  setTipoImovel("comercial");
+                  setShowResultado(false);
+                }}
               />
               Comercial
             </label>
@@ -151,7 +163,10 @@ const CotacaoConteudo = () => {
                 name="assistencia"
                 value="basica"
                 checked={assistencia === "basica"}
-                onChange={() => { setAssistencia("basica"); setShowResultado(false); }}
+                onChange={() => {
+                  setAssistencia("basica");
+                  setShowResultado(false);
+                }}
               />
               Básica
             </label>
@@ -161,14 +176,16 @@ const CotacaoConteudo = () => {
                 name="assistencia"
                 value="faz_tudo_lar"
                 checked={assistencia === "faz_tudo_lar"}
-                onChange={() => { setAssistencia("faz_tudo_lar"); setShowResultado(false); }}
+                onChange={() => {
+                  setAssistencia("faz_tudo_lar");
+                  setShowResultado(false);
+                }}
               />
               Faz Tudo Lar
             </label>
           </div>
         </div>
       </div>
-
 
       <div className="input-grid">
         <div className="campo">
@@ -239,100 +256,10 @@ const CotacaoConteudo = () => {
         <div className="resultados-container">
           <div className="linha-resultado">
             <div className="campo readonly">
-              <label>Prêmio Líquido (R$)</label>
-              <input
-                type="text"
-                value={formatarValorParaMoeda(premioLiquido)}
-                readOnly
-              />
-            </div>
-            <div className="campo readonly">
-              <label>Comissão Administradora (R$)</label>
-              <input
-                type="text"
-                value={formatarValorParaMoeda(comissaoAdministradora)}
-                readOnly
-              />
-            </div>
-          </div>
-
-          <div className="linha-resultado">
-            <div className="campo readonly">
-              <label>{labelAssistencia}</label>
-              <input
-                type="text"
-                value={formatarValorParaMoeda(assistenciaBasica)}
-                readOnly
-              />
-            </div>
-            <div className="campo readonly">
-              <label>Prêmio Líquido Seguradora (R$)</label>
-              <input
-                type="text"
-                value={formatarValorParaMoeda(premioLiquidoSeguradora)}
-                readOnly
-              />
-            </div>
-          </div>
-
-          <div className="linha-resultado">
-            <div className="campo readonly">
-              <label>Prêmio Bruto Seguradora (R$)</label>
-              <input
-                type="text"
-                value={formatarValorParaMoeda(premioBrutoSeguradora)}
-                readOnly
-              />
-            </div>
-            <div className="campo readonly">
-              <label>Repasse Seguradora Bruto (R$)</label>
-              <input
-                type="text"
-                value={formatarValorParaMoeda(repasseSeguradoraBruto)}
-                readOnly
-              />
-            </div>
-          </div>
-
-          <div className="linha-resultado">
-            <div className="campo readonly">
-              <label>Repasse Líquido (R$)</label>
-              <input
-                type="text"
-                value={formatarValorParaMoeda(repasseLiquido)}
-                readOnly
-              />
-            </div>
-            <div className="campo readonly">
-              <label>Entradas (R$)</label>
-              <input
-                type="text"
-                value={formatarValorParaMoeda(entradas)}
-                readOnly
-              />
-            </div>
-          </div>
-
-          <div className="linha-resultado">
-            <div className="campo readonly">
-              <label>Saídas (R$)</label>
-              <input
-                type="text"
-                value={formatarValorParaMoeda(saidas)}
-                readOnly
-              />
-            </div>
-            <div className="campo readonly">
               <label>Resultado (R$)</label>
-              <input
-                type="text"
-                value={formatarValorParaMoeda(resultado)}
-                readOnly
-              />
+              <input type="text" value={formatarValorParaMoeda(resultado)} readOnly />
             </div>
-          </div>
 
-          <div className="resultado-final-linha">
             <div className="campo readonly">
               <label>Resultado Final (%)</label>
               <input

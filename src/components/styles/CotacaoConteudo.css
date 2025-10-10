@@ -175,10 +175,17 @@
   border-radius: 18px;
   border: 1px solid #eef4ff;
   box-shadow: 0 8px 26px rgba(24, 88, 214, .08), 0 1px 1px rgba(16, 24, 40, .04);
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(1fr, 1fr));
   gap: 18px;
-  align-items: end;
+  align-items: center;
+  margin: 20px auto 0;
+  max-width: 720px;
+  width: min(92%, 720px);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  justify-items: center;
+  align-items: center;
 }
 
 .linha-resultado,
@@ -192,10 +199,11 @@
 }
 
 .resultados-container .campo {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  width: 100%;
+  margin: 0 !important;
+  align-items: center;
 }
+
 
 .resultados-container .campo label {
   font-size: .98rem;
@@ -214,7 +222,7 @@
   font-size: .98rem;
   color: #1f2937;
   font-weight: 700;
-  text-align: right;
+  text-align: center;
   display: flex;
   align-items: center;
 }
@@ -300,10 +308,10 @@
 @media (min-width: 1200px) and (max-width: 1399px) {
   .cotacao-container {
     margin-left: calc(18.5vw);
-    max-width: 1160px;
+    max-width: 880px;
     padding: 36px 32px 30px 32px;
     border-radius: 20px;
-    margin-top: 3rem;
+    margin-top: 1rem;
   }
 }
 
@@ -491,4 +499,3 @@
     padding: 8px 12px;
   }
 }
-
