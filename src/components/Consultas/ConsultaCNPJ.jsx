@@ -81,7 +81,6 @@ function baixarXLSX(linhas) {
   XLSX.writeFile(wb, "resultado-consulta-cnpjs.xlsx");
 }
 
-// 🆕 util para montar o endereço a ser enviado ao Maps
 function montarEnderecoParaMaps({ cep, tipo, logradouro, numero, cidade, uf, complemento }) {
   const partes = [];
   if (cep) partes.push(String(cep));
@@ -92,7 +91,7 @@ function montarEnderecoParaMaps({ cep, tipo, logradouro, numero, cidade, uf, com
   if (complemento) partes.push(String(complemento));
   if (cidade) partes.push(String(cidade));
   if (uf) partes.push(String(uf));
-  // remove espaços duplicados + filtra vazios
+
   return partes
     .map((p) => p.replace(/\s+/g, " ").trim())
     .filter(Boolean)
@@ -120,7 +119,6 @@ const ConsultaCNPJ = () => {
   const [resultado, setResultado] = useState(null);
   const [hasQueried, setHasQueried] = useState(false);
 
-  // 🆕 Flag para controlar quando rolar até o resultado
   const [scrollOnNextResult, setScrollOnNextResult] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -170,7 +168,6 @@ const ConsultaCNPJ = () => {
   };
 
   const getRoot = (res) => res?.resultado_api ?? res;
-
   const getResultList = (res) => {
     if (!res) return [];
     const root = getRoot(res);
@@ -210,7 +207,7 @@ const ConsultaCNPJ = () => {
   const cnpjData = getCnpjData(resultado);
   const resultList = getResultList(resultado);
 
-  // 🆕 Scroll controlado para não "puxar" quando iniciar nova consulta
+
   useEffect(() => {
     if (!loading && scrollOnNextResult && resultadoRef.current) {
       const hasCnpj = activeForm === "cnpj" && !!cnpjData;
@@ -218,7 +215,7 @@ const ConsultaCNPJ = () => {
 
       if (hasCnpj || hasChaves) {
         resultadoRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-        setScrollOnNextResult(false); // desliga após usar
+        setScrollOnNextResult(false);
       }
     }
   }, [loading, scrollOnNextResult, activeForm, cnpjData, resultList]);
@@ -226,7 +223,7 @@ const ConsultaCNPJ = () => {
   const handleCnpjChange = (e) => {
     const rawCnpj = e.target.value.replace(/\D/g, "").slice(0, 14);
     setCnpj(rawCnpj);
-    setScrollOnNextResult(false); // evita scroll enquanto digita
+    setScrollOnNextResult(false);
   };
 
   const handleFormChange = (e) => {
@@ -235,12 +232,12 @@ const ConsultaCNPJ = () => {
       ...prev,
       [name]: value,
     }));
-    setScrollOnNextResult(false); // evita scroll enquanto digita
+    setScrollOnNextResult(false);
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setScrollOnNextResult(false); // zera antes de começar nova consulta
+    setScrollOnNextResult(false);
     setLoading(true);
     setError(null);
     setResultado(null);
@@ -298,9 +295,10 @@ const ConsultaCNPJ = () => {
 
     try {
       const response = await ConsultaService.realizarConsulta(payload);
-      const apiData = response?.data ?? response; // compatível com ambos formatos
+      console.log('[ConsultaCNPJ] Resposta bruta da API:', response);
+      const apiData = response?.data ?? response;
       setResultado(apiData);
-      setScrollOnNextResult(true); // ativa o scroll somente após sucesso
+      setScrollOnNextResult(true);
     } catch (err) {
       const friendly = getFriendlyError(err, payload);
       setError(friendly);
@@ -372,9 +370,9 @@ const ConsultaCNPJ = () => {
               "Matriz/Filial": data.descricao_identificador_matriz_filial || "",
               "Atividades Secundárias": Array.isArray(data.cnaes_secundarios)
                 ? data.cnaes_secundarios
-                    .map((c) => c.descricao)
-                    .filter((d) => !!d && d.trim() !== "")
-                    .join(", ")
+                  .map((c) => c.descricao)
+                  .filter((d) => !!d && d.trim() !== "")
+                  .join(", ")
                 : "",
             });
           } catch (e) {
@@ -447,7 +445,7 @@ const ConsultaCNPJ = () => {
     setMassResultRows([]);
     setMassProgress({ current: 0, total: 0 });
     setMassProcessing(false);
-    setScrollOnNextResult(false); // 🆕 evita scroll ao trocar de aba
+    setScrollOnNextResult(false);
   };
 
   return (
@@ -580,7 +578,7 @@ const ConsultaCNPJ = () => {
             <div
               className={
                 massConsultaMessage.toLowerCase().includes("erro") ||
-                massConsultaMessage.toLowerCase().includes("falha")
+                  massConsultaMessage.toLowerCase().includes("falha")
                   ? "error-message"
                   : "success-message"
               }
@@ -664,15 +662,58 @@ const ConsultaCNPJ = () => {
                 copiarParaClipboard(
                   Array.isArray(cnpjData.cnaes_secundarios)
                     ? cnpjData.cnaes_secundarios
-                        .filter((c) => !!c.descricao && c.descricao.trim() !== "")
-                        .map((c) => c.descricao)
-                        .join("\n") || "Nenhuma"
+                      .filter((c) => !!c.descricao && c.descricao.trim() !== "")
+                      .map((c) => c.descricao)
+                      .join("\n") || "Nenhuma"
                     : "Nenhuma",
                   "atividades_secundarias"
                 )
               }
             >
               {copiado.atividades_secundarias ? <FiCheck color="#20bf55" /> : <FiCopy />}
+            </button>
+          </div>
+
+          {/* CNAE Fiscal */}
+          <label>CNAE Fiscal:</label>
+          <div className="input-copy-group">
+            <input
+              type="text"
+              value={cnpjData.cnae_fiscal || cnpjData.cnae_fiscal_descricao || "N/A"}
+              disabled
+            />
+            <button
+              type="button"
+              className="copy-btn"
+              title="Copiar CNAE Fiscal"
+              onClick={() =>
+                copiarParaClipboard(
+                  cnpjData.cnae_fiscal || cnpjData.cnae_fiscal_descricao || "N/A",
+                  "cnae_fiscal"
+                )
+              }
+            >
+              {copiado.cnae_fiscal ? <FiCheck color="#20bf55" /> : <FiCopy />}
+            </button>
+          </div>
+
+          {/* Natureza Jurídica */}
+          <label>Porte:</label>
+          <div className="input-copy-group">
+            <input
+              type="text"
+              value={cnpjData.porte|| "N/A"}
+              disabled
+            />
+            <button
+              type="button"
+              className="copy-btn"
+              title="Copiar Natureza Jurídica"
+              onClick={() =>
+                copiarParaClipboard(cnpjData.natureza_juridica || "N/A", "natureza_juridica")
+              }
+            >
+              {copiado.natureza_juridica ? <FiCheck color="#20bf55" /> : <FiCopy />}
             </button>
           </div>
 
@@ -924,11 +965,10 @@ const ConsultaCNPJ = () => {
                             <p>
                               <strong>Endereço:</strong>{" "}
                               {AD?.StreetType || AD?.Street || AD?.Number || AD?.Complement
-                                ? `${AD?.StreetType ?? ""} ${AD?.Street ?? ""}${AD?.Number ? `, ${AD?.Number}` : ""}${
-                                    AD?.Complement ? ` - ${AD?.Complement}` : ""
+                                ? `${AD?.StreetType ?? ""} ${AD?.Street ?? ""}${AD?.Number ? `, ${AD?.Number}` : ""}${AD?.Complement ? ` - ${AD?.Complement}` : ""
                                   }`
-                                    .replace(/\s+/g, " ")
-                                    .trim()
+                                  .replace(/\s+/g, " ")
+                                  .trim()
                                 : "N/A"}
                             </p>
                             <p>
