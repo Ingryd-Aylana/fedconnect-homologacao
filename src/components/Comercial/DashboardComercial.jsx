@@ -6,7 +6,6 @@ import { AgendaComercialService } from "../../services/agenda_comercial";
 import "../styles/DashboardComercial.css";
 import * as XLSX from "xlsx";
 
-/* ==================== utils ==================== */
 function toBRDate(d) {
   try {
     if (!d) return "N/A";
@@ -58,7 +57,6 @@ function getMonthBounds(date) {
   return { start, end };
 }
 
-/* ==================== hook de breakpoint ==================== */
 function useIsMobile(maxWidth = 768) {
   const [isMobile, setIsMobile] = useState(
     typeof window !== "undefined"
@@ -79,7 +77,6 @@ function useIsMobile(maxWidth = 768) {
   return isMobile;
 }
 
-/* ==================== helpers para status ==================== */
 function normalizeStatus(raw) {
   const s = String(raw || "").trim().toLowerCase();
   if (s.includes("agend")) return "agendadas";
@@ -101,7 +98,6 @@ function StatusPill({ status }) {
   return <span className={`pill pill-${st}`}>{status || "—"}</span>;
 }
 
-/* ==================== Accordion Mobile ==================== */
 function MobileAccordionVisitas({ visitas, onCardClick }) {
   const groups = useMemo(() => groupByStatus(visitas), [visitas]);
   const [openKey, setOpenKey] = useState("agendadas");
@@ -170,7 +166,6 @@ function MobileAccordionVisitas({ visitas, onCardClick }) {
   );
 }
 
-/* ==================== componente principal ==================== */
 export default function DashboardComercial() {
   const [visitas, setVisitas] = useState([]);
   const [modal, setModal] = useState(null);
@@ -197,7 +192,6 @@ export default function DashboardComercial() {
       const year = month.getFullYear();
       const monthNumber = month.getMonth() + 1;
 
-      // NOVO: backend agora recebe ano/mes
       const response = await AgendaComercialService.getVisitas({
         ano: year,
         mes: monthNumber,
@@ -277,14 +271,12 @@ export default function DashboardComercial() {
       const vDate = parseISODate(vISO);
       if (!vDate || Number.isNaN(vDate.getTime())) return false;
 
-      // Mantido por segurança; back já filtra por ano/mes
       const inActiveMonth = vDate >= monthStart && vDate <= monthEnd;
 
       return empresaOk && comercialOk && inActiveMonth;
     });
   }, [visitas, filters, monthStart, monthEnd]);
 
-  /* ====== totalizador para mobile ====== */
   const totals = useMemo(() => {
     const g = groupByStatus(filteredVisitas);
     return {
@@ -349,7 +341,6 @@ export default function DashboardComercial() {
     setVisitaDetalhe(merged);
   }
 
-  // Mantidos para o Kanban desktop (se necessário)
   async function atualizarStatus(id, novoStatus) {
     try {
       await AgendaComercialService.updateVisitaStatus(id, novoStatus);
@@ -363,7 +354,6 @@ export default function DashboardComercial() {
     setModal(visita);
   }
 
-  // CONTROLE ÚNICO DE MÊS
   function goPrevMonth() {
     setActiveMonth((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1));
   }
@@ -441,7 +431,6 @@ export default function DashboardComercial() {
         </button>
       </div>
 
-      {/* Desktop: gráfico | Mobile: totalizador */}
       {isMobile ? (
         <>
           <section className="dashboard-totalizador">

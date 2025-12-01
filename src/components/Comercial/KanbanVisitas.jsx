@@ -7,7 +7,6 @@ const statusLabels = {
   cancelada: "Canceladas"
 };
 
-// Função para formatar data ISO (AAAA-MM-DD) para DD/MM/AAAA
 function formatDateBR(iso) {
   if (!iso) return "";
   const [y, m, d] = iso.split("-");
@@ -24,14 +23,12 @@ export default function KanbanVisitas({ visitas, onConfirmar, onStatusChange, on
 
         return (
           <div key={status} className="kanban-col">
-            {/* 1. Cabeçalho Fixo (usa a classe kanban-col-header) */}
             <div className="kanban-col-header">
               <h4>
                 {statusLabels[status]}
               </h4>
             </div>
 
-            {/* 2. Corpo Rolável (USA A CLASSE CRUCIAL: kanban-col-body) */}
             <div className="kanban-col-body">
               {statusVisitas.map(v => (
                 <div
@@ -49,7 +46,6 @@ export default function KanbanVisitas({ visitas, onConfirmar, onStatusChange, on
                 </div>
               ))}
 
-              {/* Adicionado o empty-col para o caso de coluna vazia (opcional) */}
               {statusVisitas.length === 0 && (
                 <div className="empty-col">Nenhuma visita neste status.</div>
               )}

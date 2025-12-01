@@ -1,6 +1,5 @@
 import React from "react";
 
-// Função para formatar data ISO em DD/MM/AAAA
 function formatDateBR(iso) {
   if (!iso) return "";
   const [y, m, d] = iso.split("-");

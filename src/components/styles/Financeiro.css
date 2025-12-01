@@ -21,7 +21,6 @@
   --radius: 12px;
 }
 
-/* Página */
 .cc-page {
   min-height: 100vh;
   background: linear-gradient(135deg, #f8fafc, var(--slate-100));
@@ -34,7 +33,6 @@
   margin: 0 auto;
 }
 
-/* Header */
 .cc-header h1 {
   font-size: 28px;
   color: var(--brand-600);
@@ -47,7 +45,6 @@
   color: var(--slate-600);
 }
 
-/* Cards / caixas */
 .cc-card {
   background: var(--white);
   border-radius: var(--radius);
@@ -56,7 +53,6 @@
   margin-bottom: 20px;
 }
 
-/* Filtros */
 .cc-filters .cc-filters-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(180px, 1fr));
@@ -124,7 +120,6 @@
   gap: 16px;
 }
 
-/* KPIs */
 .cc-grid-3 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -177,7 +172,6 @@
   color: var(--orange);
 }
 
-/* Divisão por comercial */
 .cc-section-title {
   display: flex;
   align-items: center;
@@ -228,7 +222,6 @@
   font-weight: 700;
 }
 
-/* Tabela */
 .cc-table-head {
   padding: 8px 0 14px;
   border-bottom: 1px solid var(--slate-200);
@@ -279,7 +272,6 @@
   text-align: center;
 }
 
-/* Badges de status */
 .cc-badge {
   display: inline-flex;
   align-items: center;
@@ -300,7 +292,6 @@
   color: var(--orange-800);
 }
 
-/* Vazio */
 .cc-empty {
   padding: 48px 12px;
   text-align: center;
@@ -308,7 +299,6 @@
   font-weight: 600;
 }
 
-/* Responsivo */
 @media (max-width: 1024px) {
   .cc-grid-3 {
     grid-template-columns: 1fr 1fr;

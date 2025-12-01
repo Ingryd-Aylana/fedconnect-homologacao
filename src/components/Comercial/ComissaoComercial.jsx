@@ -42,7 +42,7 @@ const handleExportMes = (item) => {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Mês');
 
-    const slug = item.mes.replace(/\//g, '-').toLowerCase(); // Out-2025 -> out-2025
+    const slug = item.mes.replace(/\//g, '-').toLowerCase(); 
     XLSX.writeFile(wb, `comissao_${slug}.xlsx`);
 };
 
