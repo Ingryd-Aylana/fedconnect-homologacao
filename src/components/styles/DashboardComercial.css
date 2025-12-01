@@ -1224,13 +1224,11 @@
   padding: 8px 12px;
 }
 
-/* ======= Responsividade: só usa accordion em mobile ======= */
 @media (max-width: 768px) {
   .dashboard-kanban .kanban-container {
     display: none;
   }
 
-  /* se o KanbanVisitas tiver esse container */
   .accordion {
     display: grid;
   }

@@ -20,7 +20,6 @@ const CommissionControl = () => {
 
   const commercials = ["João Silva", "Maria Santos", "Pedro Costa"];
 
-  // Filtragem (somente período e comercial)
   const filteredData = useMemo(() => {
     return commissionsData.filter((item) => {
       const periodMatch = item.date.startsWith(selectedPeriod);
@@ -30,7 +29,6 @@ const CommissionControl = () => {
     });
   }, [commissionsData, selectedPeriod, selectedCommercial]);
 
-  // KPIs: Total Comissões, Total Vendas
   const totals = useMemo(() => {
     const totalCommission = filteredData.reduce((s, i) => s + i.commission, 0);
     const totalSales = filteredData.reduce((s, i) => s + i.value, 0);
@@ -39,7 +37,6 @@ const CommissionControl = () => {
     return { totalCommission, totalSales, avgCommission };
   }, [filteredData]);
 
-  // Divisão por comercial 
   const commissionByCommercial = useMemo(() => {
     return filteredData.reduce((acc, item) => {
       if (!acc[item.commercial]) {

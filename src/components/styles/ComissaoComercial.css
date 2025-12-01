@@ -1,5 +1,4 @@
 .dashboard {
-    
     margin: 0 auto;
     margin-left: 240px;
     padding: 1.5rem;
@@ -467,7 +466,6 @@
     }
 }
 
-/* quando a linha tiver ação, abrimos uma 4ª coluna para o botão */
 .table-row.table-row--with-action {
   grid-template-columns: 2fr 1fr 1fr auto;
   align-items: center;
@@ -479,7 +477,6 @@
   align-items: center;
 }
 
-/* botão por linha */
 .btn-row-export {
   padding: 0.45rem 0.75rem;
   border: 1px solid #e5e7eb;

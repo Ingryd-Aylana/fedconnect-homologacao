@@ -1,6 +1,3 @@
-/* =========================
-   Variáveis (tema)
-========================= */
 :root {
   --sidebar-width: 290px;
   --sidebar-mini-width: 72px;
@@ -41,9 +38,6 @@
   --page-h-margins: 24px;
 }
 
-/* =========================
-   Base / Reset leve
-========================= */
 .agenda-page input,
 .agenda-page select,
 .agenda-page textarea,

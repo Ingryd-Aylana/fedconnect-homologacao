@@ -5,20 +5,17 @@ export default function GraficoVisitas({ visitas }) {
   const wrapRef = useRef(null);
   const [width, setWidth] = useState(0);
 
-  // Medir largura do container e reagir ao resize
   useEffect(() => {
     if (!wrapRef.current) return;
 
     const el = wrapRef.current;
     const update = () => setWidth(el.clientWidth);
 
-    update(); // mede já no mount
+    update();
 
-    // ResizeObserver (nativo nos browsers modernos)
     const ro = new ResizeObserver(() => update());
     ro.observe(el);
 
-    // fallback no resize da janela
     window.addEventListener("resize", update);
 
     return () => {
@@ -33,10 +30,8 @@ export default function GraficoVisitas({ visitas }) {
   { nome: "Canceladas", valor: visitas.filter(v => v.status && v.status.toLowerCase() === "cancelada").length },
 ];
 
-
-  // Evita render antes de medir
-  const chartWidth = Math.max(width, 320);  // largura mínima
-  const chartHeight = 160;                  // baixo como no mock
+  const chartWidth = Math.max(width, 320);  
+  const chartHeight = 160;                  
 
   return (
     <div ref={wrapRef} style={{ width: "100%" }}>

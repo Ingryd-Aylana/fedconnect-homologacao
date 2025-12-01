@@ -255,7 +255,6 @@
   margin-right: 5px;
 }
 
-/* --- RESPONSIVIDADE --- */
 @media (max-width: 900px) {
   .config-container {
     margin-left: 0;
