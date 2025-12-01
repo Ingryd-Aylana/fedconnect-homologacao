@@ -44,7 +44,7 @@ const Login = () => {
                 <div className="loginContainer">
                     <div className="loginBox">
                         <img
-                            src="https://i.postimg.cc/Gh597vbr/LOGO.png"
+                            src="./imagens/LOGO.png"
                             alt="Fedcorp Logo"
                             className="logoImg"
                         />
