@@ -2,7 +2,7 @@
 .consulta-container04 {
   padding: 30px 16px 24px 16px;
   max-width: 880px;
-  margin: 0 auto;        
+  margin-left: 220px !important;
   border-radius: 16px;
   box-sizing: border-box;
 }
@@ -95,7 +95,7 @@
   border: 1.5px solid #e4e8ee;
   box-shadow: 0 2px 10px rgba(36, 99, 235, 0.07);
   text-align: start;
-  margin: 15px  auto 22px auto;
+  margin: 15px auto 22px auto;
   margin-left: 14rem !important;
   display: flex;
   flex-direction: column;
@@ -149,7 +149,7 @@
   background: #f8fafc;
   color: #1c3263;
   display: block;
-  margin-bottom: 0.65rem; 
+  margin-bottom: 0.65rem;
 
   transition: border 0.19s;
 }
@@ -338,15 +338,15 @@
   background: #fff !important;
   border-radius: 18px;
   box-shadow: 0 4px 24px rgba(36, 99, 235, 0.08);
-  padding: 32px 26px 24px 26px;
-  margin: 28px 75px 0 auto !important;
-  max-width: 540px;
-  min-width: 200px;
-  width: 100%;
+  padding: 40px 32px 28px 32px;
+  margin: 28px auto 0 auto !important;
+  max-width: 770px !important;
+  min-width: 260px;
+  width: 95%;
   box-sizing: border-box;
-  gap: 0.8rem;
+  gap: 1rem;
   position: relative;
-  overflow-x: auto;
+  overflow-x: hidden;
 }
 
 .card-resultado label {
@@ -622,7 +622,8 @@
   box-shadow: 0 1px 2px #0001;
 }
 
-.copy-btn:hover, .copy-btn:focus {
+.copy-btn:hover,
+.copy-btn:focus {
   color: #20bf55;
   background: #eafaf2;
 }
@@ -648,9 +649,17 @@
   align-items: center;
   animation: popslidein .16s;
 }
+
 @keyframes popslidein {
-  0% { opacity: 0; top: 0;}
-  100% { opacity: 1; top: 30px;}
+  0% {
+    opacity: 0;
+    top: 0;
+  }
+
+  100% {
+    opacity: 1;
+    top: 30px;
+  }
 }
 
 .maps-btn {
@@ -663,6 +672,7 @@
   cursor: pointer;
   transition: background 0.2s;
 }
+
 .maps-btn:hover {
   background: #1042a3;
 }
@@ -707,11 +717,11 @@
     max-width: 100vw;
   }
 
-   .consulta-container04 {
+  .consulta-container04 {
     padding: 14px 0 14px 0;
     max-width: 90vw;
     margin-left: 4.2vw;
-   }
+  }
 
   .titulo-pagina {
     font-size: 1.17rem !important;
@@ -811,6 +821,7 @@
 }
 
 @media (min-width: 1200px) {
+
   .consulta-container03,
   .consulta-container04 {
     margin-left: 15vw;
@@ -820,7 +831,7 @@
 
   .form-container,
   .card-resultado {
-    margin: 32px auto 0 auto !important; 
-    
+    margin: 32px auto 0 auto !important;
+
   }
 }

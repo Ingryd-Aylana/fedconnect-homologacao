@@ -48,7 +48,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
           <Link to="/home" className="logo-link">
             {/* Logo completa - só desktop */}
             <img
-              src="https://i.postimg.cc/Gh597vbr/LOGO.png"
+              src="../../imagens/LOGO.png"
               alt="Logo"
               className="logo-desktop"
             />
@@ -114,7 +114,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
               </li>
             )}
 
-            {["admin", "comercial"].includes(nivelAcesso) && (
+            {["admin"].includes(nivelAcesso) && (
               <li>
                 <Link to="/metricas">
                   <div className="sidebar-icon-tooltip">
@@ -146,6 +146,17 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
                 </Link>
               </li>
             )}
+
+             {/* {["admin", "financeiro"].includes(nivelAcesso) && (
+              <li className={location.pathname === "/agenda" ? "active" : ""}>
+                <Link to="/financeiro">
+                  <div className="sidebar-icon-tooltip">
+                    <i className="bi bi-cash"></i>
+                    <span>Financeiro</span>
+                  </div>
+                </Link>
+              </li>
+            )} */}
           </ul>
         </nav>
         <Dropdown sidebarOpen={sidebarOpen} />
