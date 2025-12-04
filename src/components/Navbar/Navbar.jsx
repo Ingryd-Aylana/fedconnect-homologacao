@@ -80,7 +80,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
                 </Link>
               </li>
             )}
-
+{/* 
             {["admin", "moderador"].includes(nivelAcesso) && (
               <li className={location.pathname === "/home-adm" ? "active" : ""}>
                 <Link to="/home-adm">
@@ -90,7 +90,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
                   </div>
                 </Link>
               </li>
-            )}
+            )} */}
 
             {["admin", "comercial"].includes(nivelAcesso) && (
               <li className={location.pathname === "/consulta-comercial" ? "active" : ""}>
@@ -109,6 +109,17 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
                   <div className="sidebar-icon-tooltip">
                     <i className="bi bi-tools"></i>
                     <span>Ferramentas</span>
+                  </div>
+                </Link>
+              </li>
+            )}
+
+               {["admin", "usuario", "comercial"].includes(nivelAcesso) && (
+              <li>
+                <Link to="/operacional">
+                  <div className="sidebar-icon-tooltip">
+                    <i className="bi bi-folder"></i>
+                    <span>Operacional</span>
                   </div>
                 </Link>
               </li>

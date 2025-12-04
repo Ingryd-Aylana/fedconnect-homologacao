@@ -1,0 +1,508 @@
+.pdf-page {
+  min-height: 100vh;
+  padding: 24px;
+  box-sizing: border-box;
+  margin-left: 240px;
+}
+
+.pdf-container {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.pdf-header {
+  margin-bottom: 24px;
+}
+
+.pdf-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pdf-header-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #2563eb, #4f46e5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
+}
+
+.pdf-header-icon {
+  width: 24px;
+  height: 24px;
+  color: #ffffff;
+}
+
+.pdf-header-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  
+}
+
+.pdf-header-subtitle {
+  font-size: 0.9rem;
+  color: #4b5563;
+  margin: 4px 0 0;
+  text-align: center;
+}
+
+/* ================================
+   Card principal
+=================================== */
+
+.pdf-card {
+  background-color: #ffffff;
+  border-radius: 18px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+}
+
+.pdf-card-main {
+  margin-bottom: 16px;
+}
+
+/* Seções internas */
+
+.pdf-section {
+  padding: 24px 32px;
+}
+
+.pdf-section-border {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.pdf-section-body {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ================================
+   Steps
+=================================== */
+
+.pdf-step-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.pdf-step-number {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background-color: #dbeafe;
+  color: #1d4ed8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.pdf-step-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* ================================
+   Cards de operação
+=================================== */
+
+.pdf-options-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.pdf-option-card {
+  position: relative;
+  padding: 16px;
+  border-radius: 14px;
+  border: 2px solid #e5e7eb;
+  background-color: #ffffff;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease,
+    transform 0.08s ease;
+}
+
+.pdf-option-card:hover {
+  border-color: #bfdbfe;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+  transform: translateY(-1px);
+}
+
+.pdf-option-card.active {
+  border-color: #3b82f6;
+  background-color: #eff6ff;
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.25);
+}
+
+.pdf-option-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.pdf-option-emoji {
+  font-size: 1.6rem;
+}
+
+.pdf-option-text {
+  flex: 1;
+}
+
+.pdf-option-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 4px;
+}
+
+.pdf-option-description {
+  font-size: 0.75rem;
+  color: #4b5563;
+  margin: 0;
+}
+
+.pdf-option-check {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.pdf-option-check-icon {
+  width: 20px;
+  height: 20px;
+  color: #3b82f6;
+}
+
+/* ================================
+   Uploads
+=================================== */
+
+.pdf-field-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pdf-upload {
+  position: relative;
+  border-radius: 14px;
+  border: 2px dashed #d1d5db;
+  padding: 24px;
+  background-color: #f9fafb;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pdf-upload-empty:hover {
+  border-color: #93c5fd;
+  background-color: #eff6ff;
+}
+
+.pdf-upload-filled {
+  border-color: #4ade80;
+  background-color: #ecfdf3;
+}
+
+.pdf-upload-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.pdf-upload-content {
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.pdf-upload-icon {
+  width: 32px;
+  height: 32px;
+  margin-bottom: 8px;
+}
+
+.pdf-upload-icon.empty {
+  color: #9ca3af;
+}
+
+.pdf-upload-icon.filled {
+  color: #22c55e;
+}
+
+.pdf-upload-title {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #111827;
+  margin: 0;
+}
+
+.pdf-upload-subtitle {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 4px 0 0;
+}
+
+/* ================================
+   Textarea / Regra de renomeação
+=================================== */
+
+.pdf-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #d1d5db;
+  font-size: 0.9rem;
+  font-family: inherit;
+  resize: none;
+  min-height: 100px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-sizing: border-box;
+}
+
+.pdf-textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+}
+
+.pdf-info-box {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background-color: #eff6ff;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.pdf-info-icon {
+  width: 16px;
+  height: 16px;
+  color: #2563eb;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.pdf-info-text {
+  font-size: 0.75rem;
+  color: #1d4ed8;
+  margin: 0;
+}
+
+/* ================================
+   Alerts
+=================================== */
+
+.pdf-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border-width: 1px;
+  border-style: solid;
+  font-size: 0.85rem;
+}
+
+.pdf-alert-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.pdf-alert-text {
+  margin: 0;
+}
+
+.pdf-alert-error {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.pdf-alert-icon-error {
+  color: #b91c1c;
+}
+
+.pdf-alert-success {
+  background-color: #ecfdf5;
+  border-color: #bbf7d0;
+  color: #15803d;
+}
+
+.pdf-alert-icon-success {
+  color: #16a34a;
+}
+
+/* ================================
+   Botões / ações
+=================================== */
+
+.pdf-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 12px;
+}
+
+.pdf-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 12px;
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.08s ease, box-shadow 0.15s ease, background 0.15s ease,
+    border-color 0.15s ease, color 0.15s ease;
+}
+
+.pdf-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.pdf-btn-primary {
+  background-image: linear-gradient(90deg, #2563eb, #4f46e5);
+  color: #ffffff;
+  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.5);
+}
+
+.pdf-btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 26px rgba(37, 99, 235, 0.6);
+  background-image: linear-gradient(90deg, #1d4ed8, #4338ca);
+}
+
+.pdf-btn-secondary {
+  background-color: #ffffff;
+  color: #374151;
+  border: 2px solid #d1d5db;
+}
+
+.pdf-btn-secondary:hover {
+  border-color: #9ca3af;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
+}
+
+.pdf-btn-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Spinner */
+
+.pdf-spinner {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border-width: 2px;
+  border-style: solid;
+  border-color: #ffffff;
+  border-top-color: transparent;
+  animation: pdf-spin 0.8s linear infinite;
+}
+
+@keyframes pdf-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ================================
+   Tips card
+=================================== */
+
+.pdf-tips-card {
+  margin-top: 16px;
+  padding: 16px 20px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #eff6ff, #e0f2fe);
+  border: 1px solid #bfdbfe;
+}
+
+.pdf-tips-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.pdf-tips-icon {
+  width: 20px;
+  height: 20px;
+  color: #2563eb;
+}
+
+.pdf-tips-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.pdf-tips-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: #374151;
+}
+
+/* ================================
+   Responsivo
+=================================== */
+
+@media (max-width: 900px) {
+  .pdf-options-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pdf-section {
+    padding: 20px 18px;
+  }
+}
+
+@media (max-width: 640px) {
+  .pdf-page {
+    padding: 16px;
+  }
+
+  .pdf-header-title {
+    font-size: 1.5rem;
+  }
+
+  .pdf-actions {
+    flex-direction: column;
+  }
+
+  .pdf-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
